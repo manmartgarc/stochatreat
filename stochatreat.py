@@ -14,7 +14,7 @@ import numpy as np
 # %% Main
 
 
-def stochatreat(df, block_cols, treats, seed=0, idx_col=None, size=None):
+def stochatreat(data, block_cols, treats, seed=0, idx_col=None, size=None):
     """
     Takes a dataframe and an arbitrary number of treatments over an
     arbitrary number of clusters or strata.
@@ -25,7 +25,7 @@ def stochatreat(df, block_cols, treats, seed=0, idx_col=None, size=None):
 
     Parameters
     ----------
-    df: string
+    data: string
         DataFrame of your data.
     block_cols: string or list of strings
         Columns of your DataFrame over wich you wish to stratify over.
@@ -49,35 +49,35 @@ def stochatreat(df, block_cols, treats, seed=0, idx_col=None, size=None):
     -----
     Single cluster:
 
-    >>> treatments = stochatreat(df, 'clusters', 2, seed=1337, idx_col='myid')
-    >>> df = df.merge(treatments, on='myid')
+    >>> df['treat'] = stochatreat(data=df, block_cols='clusters',
+                                  treats=2, seed=1337, idx_col='myid')
 
     Multiple clusters:
 
-    >>> treatments = stochatreat(df, ['cluster1', 'cluster2'],
-                                2, seed=1337, idx_col='myid')
-    >>> df = df.merge(treatments, on='myid')
+    >>> df['treat'] = stochatreat(data=df,
+                                  block_cols=['cluster1', 'cluster2'],
+                                  treats=2, seed=1337, idx_col='myid')
     """
     np.random.seed(seed)
 
     n_misfits = []
-    
-    if len(df) < 1:
+
+    if len(data) < 1:
         raise ValueError('Make sure your data has enough observations')
 
     # if idx_col parameter was not defined.
     if idx_col is None:
-        df.reset_index(drop=True, inplace=True)
+        data.reset_index(drop=True, inplace=True)
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
 
     # if size is larger than sample universe
-    if size is not None and size > len(df):
+    if size is not None and size > len(data):
         raise ValueError('Size argument is larger than the sample universe.')
 
     # check for unique identifiers
-    if df[idx_col].duplicated(keep=False).sum() > 0:
+    if data[idx_col].duplicated(keep=False).sum() > 0:
         raise ValueError('Values in idx_col are not unique.')
 
     # deal with multiple clusters
@@ -85,25 +85,25 @@ def stochatreat(df, block_cols, treats, seed=0, idx_col=None, size=None):
         block_cols = [block_cols]
 
     # combine cluster cells
-    df = df[[idx_col] + block_cols].copy()
-    df['blocks'] = df[block_cols].astype(str).sum(axis=1)
+    data = data[[idx_col] + block_cols].copy()
+    data['blocks'] = data[block_cols].astype(str).sum(axis=1)
 
     # apply weights to each block
     # calculate weights if none were given
     if size is not None:
         size = int(size)
-        fracs = (df.groupby('blocks')['blocks'].count() / len(df)).values
+        fracs = (data.groupby('blocks')['blocks'].count() / len(data)).values
         reduced_sizes = np.round(fracs * size).astype(int)
 
     # keep only ids and concatenated clusters
-    df = df[df.columns[~df.columns.isin(block_cols)]]
+    data = data[data.columns[~data.columns.isin(block_cols)]]
 
     slizes = []
-    for i, cluster in enumerate(sorted(df['blocks'].unique())):
+    for i, cluster in enumerate(sorted(data['blocks'].unique())):
         treats = int(treats)
 
-        # slize df by cluster
-        slize = df.loc[df['blocks'] == cluster].copy()
+        # slize data by cluster
+        slize = data.loc[data['blocks'] == cluster].copy()
         slize = slize[[idx_col]]
 
         # slice the slize
@@ -184,6 +184,7 @@ def stochatreat(df, block_cols, treats, seed=0, idx_col=None, size=None):
 
         slizes.append(slize)
         ids_treats = pd.concat(slizes)
-        ids_treats = ids_treats.reset_index(drop=True)
+        ids_treats.reset_index(drop=True, inplace=True)
+        ids_treats.sort_values(by=idx_col, inplace=True)
 
-    return ids_treats
+    return ids_treats['treat'].values
