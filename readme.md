@@ -53,6 +53,7 @@ np.random.seed(1337)
 df = pd.DataFrame(data={'id': list(range(1000)),
                         'nhood': np.random.randint(1, 6, size=1000),
                         'dummy': np.random.randint(0, 2, size=1000)})
+
 # randomly assign treatments by neighborhoods and dummy status.
 df['treat'] = stochatreat(data=df,
                           block_cols=['nhood', 'dummy'],
