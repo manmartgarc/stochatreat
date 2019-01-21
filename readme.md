@@ -13,7 +13,7 @@ from stochatreat import stochatreat
 Single cluster:
 ```python
 import numpy as np
-import pandas as import pd
+import pandas as pd
 from stochatreat import stochatreat
 
 # make 1000 households in 5 different neighborhoods.
