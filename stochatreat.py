@@ -42,8 +42,8 @@ def stochatreat(data, block_cols, treats, seed=0, idx_col=None, size=None):
     Returns
     -------
 
-    The function returns a pandas DataFrame object, which can be merged back
-    to the original dataframe.
+    The function returns an array with the treatment assignment that
+    can be assigned to a new column on your DataFrame.
 
     Usage
     -----
