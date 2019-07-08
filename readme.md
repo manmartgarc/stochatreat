@@ -17,16 +17,18 @@ import pandas as pd
 from stochatreat import stochatreat
 
 # make 1000 households in 5 different neighborhoods.
-np.random.seed(1337)
+np.random.seed(42)
 df = pd.DataFrame(data={'id': list(range(1000)),
                         'nhood': np.random.randint(1, 6, size=1000)})
 
 # randomly assign treatments by neighborhoods.
-df['treat'] = stochatreat(data=df,
-                          block_cols='nhood',
-                          treats=2,  # including control
-                          idx_col='id',
-                          seed=1337)
+treats = stochatreat(data=df,              # your dataframe
+                     block_cols='nhood',   # the blocking variable
+                     treats=2,             # including control
+                     idx_col='id',         # the unique id column
+                     random_state=42)
+# merge back with original data
+df = df.merge(treats, how='left', on='id')
 
 # check for allocations
 df.groupby('nhood')['treat'].value_counts().unstack()
@@ -34,11 +36,11 @@ df.groupby('nhood')['treat'].value_counts().unstack()
 # previous code should return this
 treat  0.0  1.0
 nhood          
-1       93   92
-2      100  100
-3      113  113
-4       95   94
-5      100  100
+1      105  105
+2       95   95
+3       95   95
+4      103  103
+5      102  102
 ```
 
 Multiple clusters:
@@ -49,17 +51,20 @@ import pandas as pd
 from stochatreat import stochatreat
 
 # make 1000 households in 5 different neighborhoods, with a dummy indicator
-np.random.seed(1337)
+np.random.seed(42)
 df = pd.DataFrame(data={'id': list(range(1000)),
                         'nhood': np.random.randint(1, 6, size=1000),
                         'dummy': np.random.randint(0, 2, size=1000)})
 
 # randomly assign treatments by neighborhoods and dummy status.
-df['treat'] = stochatreat(data=df,
-                          block_cols=['nhood', 'dummy'],
-                          treats=2,  # including control
-                          idx_col='id',
-                          seed=1337)
+treats = stochatreat(data=df,
+                     block_cols=['nhood', 'dummy'],
+                     treats=2,
+                     probs=[1/3, 2/3],
+                     idx_col='id',
+                     random_state=42)
+# merge back with original data
+df = df.merge(treats, how='left', on='id')
 
 # check for allocations
 df.groupby(['nhood', 'dummy'])['treat'].value_counts().unstack()
@@ -67,16 +72,16 @@ df.groupby(['nhood', 'dummy'])['treat'].value_counts().unstack()
 # previous code should return this
 treat        0.0  1.0
 nhood dummy          
-1     0       56   55
-      1       37   37
-2     0       49   50
-      1       51   50
-3     0       56   56
-      1       57   57
-4     0       48   47
-      1       47   47
-5     0       50   49
-      1       51   50
+1     0       38   74
+      1       33   65
+2     0       35   69
+      1       29   57
+3     0       30   58
+      1       34   68
+4     0       36   72
+      1       33   65
+5     0       34   67
+      1       35   68
 ```
 
 ## Acknowledgments
