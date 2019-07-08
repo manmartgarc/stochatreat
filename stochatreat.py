@@ -7,14 +7,22 @@ Created on Thu Nov  8 14:34:47 2018
 @purpose:   Define a function that assign treatments over an arbitrary
             number of strata.
 """
-
 import pandas as pd
 import numpy as np
+from typing import List
 
-# %% Main
+# %%===========================================================================
+# Main
+# =============================================================================
 
 
-def stochatreat(data, block_cols, treats, seed=0, idx_col=None, size=None):
+def stochatreat(data: pd.DataFrame,
+                block_cols: List[str],
+                treats: int,
+                probs: List[float] = [None],
+                random_state: int = 42,
+                idx_col: str = None,
+                size: int = None) -> pd.Series:
     """
     Takes a dataframe and an arbitrary number of treatments over an
     arbitrary number of clusters or strata.
@@ -25,45 +33,63 @@ def stochatreat(data, block_cols, treats, seed=0, idx_col=None, size=None):
 
     Parameters
     ----------
-    data: string
-        DataFrame of your data.
-    block_cols: string or list of strings
-        Columns of your DataFrame over wich you wish to stratify over.
-    treats:
-        Number of treatment cells you wish to use (including control).
-    size:
-        Target sample size.
-    seed:
-        Seed for the randomization process, default is 0.
-    idx_col: string
-        DataFrame column with unique identifiers. If empty, uses the
-        DataFrame's index as a unique identifier.
+    data        : pandas.code.frame.DataFrame
+    block_cols  : string or list of strings
+    treats      : int
+    probs       : int
+    random_state: int
+    idx_col     : string
+    size        : int
 
     Returns
     -------
-
-    The function returns an array with the treatment assignment that
-    can be assigned to a new column on your DataFrame.
+    The function returns a dataframe with the treatment assignment that
+    can be merged with the original data frame.
 
     Usage
     -----
     Single cluster:
-
-    >>> df['treat'] = stochatreat(data=df, block_cols='clusters',
-                                  treats=2, seed=1337, idx_col='myid')
+        >>> treats = stochatreat(data=data,             # your dataframe
+                                 block_cols='cluster1', # the blocking variable
+                                 treats=2,              # including control
+                                 idx_col='myid',        # the unique id column
+                                 random_state=42)       # seed for rng
+        >>> data = data.merge(treats, how='left', on='myid')
 
     Multiple clusters:
-
-    >>> df['treat'] = stochatreat(data=df,
-                                  block_cols=['cluster1', 'cluster2'],
-                                  treats=2, seed=1337, idx_col='myid')
+        >>> treats = stochatreat(data=data,
+                                 block_cols=['cluster1', 'cluster2'],
+                                 treats=2,
+                                 probs=[1/3, 2/3],
+                                 idx_col='myid',
+                                 random_state=42)
+        >>> data = data.merge(treats, how='left', on='myid')
     """
-    np.random.seed(seed)
+    R = np.random.RandomState(random_state)
 
-    n_misfits = []
+    # =========================================================================
+    # do checks
+    # =========================================================================
+    # sort data
+    data = data.sort_values(by=idx_col)
 
+    # create treatment array and probability array
+    ts = list(range(treats))
+    # if no probabilities stated
+    if probs == [None]:
+        frac = 1 / len(ts)
+        probs = np.array([frac] * len(ts))
+    elif probs != [None]:
+        probs = np.array(probs)
+        assertmsg = 'the probabilities must add up to 1'
+        assert probs.sum() == 1, assertmsg
+
+    assertmsg = 'length of treatments and probs must be the same'
+    assert len(ts) == len(probs), assertmsg
+
+    # check length of data
     if len(data) < 1:
-        raise ValueError('Make sure your data has enough observations')
+        raise ValueError('Make sure your data has enough observations.')
 
     # if idx_col parameter was not defined.
     if idx_col is None:
@@ -87,104 +113,167 @@ def stochatreat(data, block_cols, treats, seed=0, idx_col=None, size=None):
     # combine cluster cells
     data = data[[idx_col] + block_cols].copy()
     data['blocks'] = data[block_cols].astype(str).sum(axis=1)
+    blocks = sorted(set(data['blocks']))
 
-    # apply weights to each block
-    # calculate weights if none were given
+    # apply weights to each block if sampling is wanted
     if size is not None:
         size = int(size)
-        fracs = (data.groupby('blocks')['blocks'].count() / len(data)).values
-        reduced_sizes = np.round(fracs * size).astype(int)
+        # get sampling weights
+        fracs = data['blocks'].value_counts(normalize=True).sort_index()
+        reduced_sizes = (fracs * size).round().astype(int).tolist()
+        # draw sample
+        sample = []
+        for i, block in enumerate(blocks):
+            block_sample = data[data['blocks'] == block].copy()
+            # draw sample using fractions
+            block_sample = block_sample.sample(n=reduced_sizes[i],
+                                               replace=False,
+                                               random_state=random_state)
+            sample.append(block_sample)
+        # concatenate samples from each block
+        data = pd.concat(sample)
+
+        assert sum(reduced_sizes) == len(data)
 
     # keep only ids and concatenated clusters
     data = data[data.columns[~data.columns.isin(block_cols)]]
 
+    # =========================================================================
+    # assign treatments
+    # =========================================================================
     slizes = []
-    for i, cluster in enumerate(sorted(data['blocks'].unique())):
-        treats = int(treats)
-
+    for i, cluster in enumerate(blocks):
+        new_slize = []
         # slize data by cluster
         slize = data.loc[data['blocks'] == cluster].copy()
         slize = slize[[idx_col]]
+        # get the block size
+        block_size = slize.shape[0]
 
-        # slice the slize
-        if size is not None:
-            reduced_size = reduced_sizes[i]
-            slize['rand'] = np.random.uniform(size=len(slize))
-            slize.sort_values(by='rand', ascending=False, inplace=True)
-            slize = slize.iloc[:max(1, reduced_size), :]
-            slize.drop(columns='rand', inplace=True)
+        # get the number of "belongers"
+        treat_blocks = np.floor(block_size * probs)
+        n_belong = int(treat_blocks.sum())
+        # get the number of misfits
+        n_misfit = int(block_size - n_belong)
 
+        # if the length of the block is smaller than the number of treatments
         if len(slize) < treats:
-            slize['treat'] = np.random.randint(low=1, high=treats,
-                                               size=len(slize))
+            slize['treat'] = R.choice(treats,
+                                      size=block_size,
+                                      p=probs,
+                                      replace=True)
             slize.reset_index(drop=True, inplace=True)
 
-        # attempt to divide cluster into equal groups depending on treatments
-        elif (len(slize) % treats == 0 and
-              len(slize) >= treats):  # cluster fits into treatments nicely
-            treat_block = int(len(slize) / treats)
+        # generate indexes to slice
+        locs = treat_blocks.cumsum()
 
-            # assign random numbers to each household
-            slize['rand'] = np.random.uniform(size=len(slize))
-
-            # order by random numbers
-            slize.sort_values(by='rand', ascending=False, inplace=True)
-            slize.reset_index(drop=True, inplace=True)
-
-            # assign treatments based on treatment blocks
-            for i in range(treats):
-                # if first treatment cell
-                if i == range(treats)[0]:
-                    slize.loc[:treat_block, 'treat'] = i
-                # if not the first treatment cell
-                else:
-                    slize.loc[treat_block * i:treat_block * (i + 1),
-                              'treat'] = i
-
-        elif (len(slize) % treats != 0 and
-              len(slize >= treats)):  # cluster doesn't fit into treats
-            # remove extra and classify as misfits
-            new_len = len(slize) - (len(slize) % treats)
-            new_slize = slize.iloc[:new_len].copy()
-
-            misfits = slize.iloc[new_len:].copy()
-            misfits.reset_index(drop=True, inplace=True)
-
-            treat_block = int(len(new_slize) / treats)
-
-            # assign random numbers to each household
-            new_slize['rand'] = np.random.uniform(size=len(new_slize))
-
-            # order by random numbers
-            new_slize.sort_values(by='rand', ascending=False, inplace=True)
-            new_slize.reset_index(drop=True, inplace=True)
-
-            # assign treatments based on treatment blocks
-            for i in range(treats):
-                # if first treatment cell
-                if i == range(treats)[0]:
-                    new_slize.loc[:treat_block, 'treat'] = i
-                # if not the first treatment cell
-                else:
-                    new_slize.loc[treat_block * i:treat_block * (i + 1),
-                                  'treat'] = i
-
-            # deal with misfits
-            misfits['treat'] = np.random.randint(0, treats,
-                                                 size=len(misfits))
-            n_misfits.append(len(misfits))
-
-            # un-marginalize misfits :skull:
-            slize = pd.concat([new_slize, misfits], sort=False)
-
-        try:
+        # if there are no misfits
+        if n_misfit == 0:
+            # assign random values
+            slize['rand'] = R.uniform(size=len(slize))
+            # sort by random
+            slize.sort_values(by='rand', inplace=True)
+            # drop the rand column
             slize.drop(columns='rand', inplace=True)
-        except KeyError:
-            pass
+            # reset index in order to keep original id
+            slize.reset_index(drop=True, inplace=True)
+            # assign treatment by index
+            for i, treat in enumerate(ts):
+                if treat == 0:
+                    slize.loc[:locs[i], 'treat'] = treat
+                else:
+                    slize.loc[locs[i - 1]:locs[i], 'treat'] = treat
+            new_slize = slize.copy()
 
-        slizes.append(slize)
-        ids_treats = pd.concat(slizes)
-        ids_treats.reset_index(drop=True, inplace=True)
-        ids_treats.sort_values(by=idx_col, inplace=True)
+        # if there are any misfits
+        elif n_misfit > 0:
+            # separate groups between belongers and misfits
+            belongers = slize.iloc[:n_belong].copy()
+            misfits = slize.iloc[n_belong:].copy()
 
-    return ids_treats['treat'].values
+            # assign treatmens on each group
+            for aux in [belongers, misfits]:
+                # assign random values
+                aux['rand'] = R.uniform(size=len(aux))
+                # sort by random
+                aux.sort_values(by='rand', inplace=True)
+                # drop the rand column
+                aux.drop(columns='rand', inplace=True)
+                # reset index in order to keep original id
+                aux.reset_index(drop=True, inplace=True)
+                # assign treatment by index
+                for i, treat in enumerate(ts):
+                    if treat == 0:
+                        aux.loc[:locs[i], 'treat'] = treat
+                    else:
+                        aux.loc[locs[i - 1]:locs[i], 'treat'] = treat
+                new_slize.append(aux)
+                del aux
+            new_slize = pd.concat(new_slize)
+
+        # append blocks together
+        slizes.append(new_slize)
+
+    # concatenate all blocks together
+    ids_treats = pd.concat(slizes)
+    # make sure the order is the same as the original data
+    ids_treats.sort_values(by=idx_col, inplace=True)
+    # reset index
+    ids_treats.reset_index(drop=True, inplace=True)
+
+    assert len(ids_treats) == len(data)
+    assert ids_treats['treat'].isnull().sum() == 0
+    return ids_treats
+
+
+# %%===========================================================================
+# show test
+# =============================================================================
+def main():
+    print('\n1000 households in 5 different neigborhoods. 2 treatments, '
+          'stratified by neighborhood')
+    np.random.seed(42)
+    # make 1000 households in 5 different neighborhoods.
+    df = pd.DataFrame(data={'id': list(range(1000)),
+                            'nhood': np.random.randint(1, 6, size=1000)})
+
+    # randomly assign treatments by neighborhoods.
+    treats = stochatreat(data=df,              # your dataframe
+                         block_cols='nhood',   # the blocking variable
+                         treats=2,             # including control
+                         idx_col='id',         # the unique id column
+                         random_state=42)
+    df = df.merge(treats, how='left', on='id')
+
+    # check for allocations
+    print(df.groupby('nhood')['treat']
+            .value_counts()
+            .unstack()
+            .to_string())
+
+    print('\n1000 households in 5 different neighborhoods with an additional '
+          'dummy. 2 treatments, stratified with different probabilities by '
+          'neighborhood and dummy.')
+
+    # make 1000 households in 5 different neighborhoods, with a dummy indicator
+    np.random.seed(42)
+    df = pd.DataFrame(data={'id': list(range(1000)),
+                            'nhood': np.random.randint(1, 6, size=1000),
+                            'dummy': np.random.randint(0, 2, size=1000)})
+
+    treats = stochatreat(data=df,
+                         block_cols=['nhood', 'dummy'],
+                         treats=2,
+                         probs=[1/3, 2/3],
+                         idx_col='id',
+                         random_state=42)
+    df = df.merge(treats, how='left', on='id')
+
+    print(df.groupby(['nhood', 'dummy'])['treat']
+            .value_counts()
+            .unstack()
+            .to_string())
+
+
+if __name__ == '__main__':
+    main()
