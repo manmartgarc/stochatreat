@@ -43,8 +43,7 @@ nhood
 5      102  102
 ```
 
-Multiple clusters:
-
+Multiple clusters and treatment probabilities:
 ```python
 import numpy as np
 import pandas as pd
