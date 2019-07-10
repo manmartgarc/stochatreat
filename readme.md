@@ -10,9 +10,9 @@ pip install stochatreat
 ## Usage
 Single cluster:
 ```python
+from stochatreat import stochatreat
 import numpy as np
 import pandas as pd
-from stochatreat import stochatreat
 
 # make 1000 households in 5 different neighborhoods.
 np.random.seed(42)
@@ -43,9 +43,9 @@ nhood
 
 Multiple clusters and treatment probabilities:
 ```python
+from stochatreat import stochatreat
 import numpy as np
 import pandas as pd
-from stochatreat import stochatreat
 
 # make 1000 households in 5 different neighborhoods, with a dummy indicator
 np.random.seed(42)
