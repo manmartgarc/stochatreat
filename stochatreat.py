@@ -70,6 +70,8 @@ def stochatreat(data: pd.DataFrame,
     # =========================================================================
     # do checks
     # =========================================================================
+    data = data.copy()
+
     # sort data
     data = data.sort_values(by=idx_col)
 
@@ -93,7 +95,7 @@ def stochatreat(data: pd.DataFrame,
 
     # if idx_col parameter was not defined.
     if idx_col is None:
-        data.reset_index(drop=True, inplace=True)
+        data = data.reset_index(drop=True)
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
@@ -112,19 +114,19 @@ def stochatreat(data: pd.DataFrame,
 
     # combine cluster cells
     data = data[[idx_col] + block_cols].copy()
-    data['blocks'] = data[block_cols].astype(str).sum(axis=1)
-    blocks = sorted(set(data['blocks']))
+    data['block'] = data[block_cols].astype(str).sum(axis=1)
+    blocks = sorted(set(data['block']))
 
     # apply weights to each block if sampling is wanted
     if size is not None:
         size = int(size)
         # get sampling weights
-        fracs = data['blocks'].value_counts(normalize=True).sort_index()
+        fracs = data['block'].value_counts(normalize=True).sort_index()
         reduced_sizes = (fracs * size).round().astype(int).tolist()
         # draw sample
         sample = []
         for i, block in enumerate(blocks):
-            block_sample = data[data['blocks'] == block].copy()
+            block_sample = data[data['block'] == block].copy()
             # draw sample using fractions
             block_sample = block_sample.sample(n=reduced_sizes[i],
                                                replace=False,
@@ -145,8 +147,7 @@ def stochatreat(data: pd.DataFrame,
     for i, cluster in enumerate(blocks):
         new_slize = []
         # slize data by cluster
-        slize = data.loc[data['blocks'] == cluster].copy()
-        slize = slize[[idx_col]]
+        slize = data.loc[data['block'] == cluster].copy()
         # get the block size
         block_size = slize.shape[0]
 
@@ -164,11 +165,11 @@ def stochatreat(data: pd.DataFrame,
             # assign random values
             slize['rand'] = R.uniform(size=len(slize))
             # sort by random
-            slize.sort_values(by='rand', inplace=True)
+            slize = slize.sort_values(by='rand')
             # drop the rand column
-            slize.drop(columns='rand', inplace=True)
+            slize = slize.drop(columns='rand')
             # reset index in order to keep original id
-            slize.reset_index(drop=True, inplace=True)
+            slize = slize.reset_index(drop=True)
             # assign treatment by index
             for i, treat in enumerate(ts):
                 if treat == 0:
@@ -188,11 +189,11 @@ def stochatreat(data: pd.DataFrame,
                 # assign random values
                 aux['rand'] = R.uniform(size=len(aux))
                 # sort by random
-                aux.sort_values(by='rand', inplace=True)
+                aux = aux.sort_values(by='rand')
                 # drop the rand column
-                aux.drop(columns='rand', inplace=True)
+                aux = aux.drop(columns='rand')
                 # reset index in order to keep original id
-                aux.reset_index(drop=True, inplace=True)
+                aux = aux.reset_index(drop=True)
                 # assign treatment by index
                 for i, treat in enumerate(ts):
                     if treat == 0:
@@ -207,11 +208,11 @@ def stochatreat(data: pd.DataFrame,
         slizes.append(new_slize)
 
     # concatenate all blocks together
-    ids_treats = pd.concat(slizes)
+    ids_treats = pd.concat(slizes, sort=False)
     # make sure the order is the same as the original data
-    ids_treats.sort_values(by=idx_col, inplace=True)
+    ids_treats = ids_treats.sort_values(by=idx_col)
     # reset index
-    ids_treats.reset_index(drop=True, inplace=True)
+    ids_treats = ids_treats.reset_index(drop=True)
 
     assert len(ids_treats) == len(data)
     assert ids_treats['treat'].isnull().sum() == 0
