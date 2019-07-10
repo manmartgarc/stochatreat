@@ -3,8 +3,6 @@
 This is a Python module to employ block randomization using pandas. Mainly thought with RCTs in mind, it also works for any other scenario in where you would like to randomly allocate treatment within *blocks* or *strata*.
 
 ## Installation
-For now the easiest way (for me) to use this is to copy `stochatreat.py`
-into wherever you'd like to use it, and then import it using:
 ```
 pip install stochatreat
 ```
