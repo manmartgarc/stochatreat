@@ -150,7 +150,7 @@ def stochatreat(data: pd.DataFrame,
         # get the block size
         block_size = slize.shape[0]
 
-        # get the number of "belongers"
+        # get the number of "adherents"
         treat_blocks = np.floor(block_size * probs)
         n_belong = int(treat_blocks.sum())
         # get the number of misfits
@@ -179,12 +179,12 @@ def stochatreat(data: pd.DataFrame,
 
         # if there are any misfits
         elif n_misfit > 0:
-            # separate groups between belongers and misfits
-            belongers = slize.iloc[:n_belong].copy()
+            # separate groups between adherents and misfits
+            adherents = slize.iloc[:n_belong].copy()
             misfits = slize.iloc[n_belong:].copy()
 
             # assign treatmens on each group
-            for aux in [belongers, misfits]:
+            for aux in [adherents, misfits]:
                 # assign random values
                 aux['rand'] = R.uniform(size=len(aux))
                 # sort by random
