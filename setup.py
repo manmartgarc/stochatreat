@@ -13,7 +13,7 @@ with open('README.md', 'r') as f:
 
 setuptools.setup(
         name='stochatreat',
-        version='0.0.1',
+        version='0.0.2',
         author='Manuel Martinez',
         author_email='manmartgarc@gmail.com',
         description='Randomized block assignment using pandas',
