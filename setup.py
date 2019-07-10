@@ -18,7 +18,7 @@ setuptools.setup(
         author_email='manmartgarc@gmail.com',
         description='Randomized block assignment using pandas',
         long_description=long_description,
-        long_description_content_type='text/markdown',
+        long_description_content_type="text/markdown",
         url='https://github.com/manmartgarc/stochatreat',
         packages=setuptools.find_packages(),
         classifiers=[
