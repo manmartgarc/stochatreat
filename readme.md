@@ -5,8 +5,8 @@ This is a Python module to employ block randomization using pandas. Mainly thoug
 ## Installation
 For now the easiest way (for me) to use this is to copy `stochatreat.py`
 into wherever you'd like to use it, and then import it using:
-```python
-from stochatreat import stochatreat
+```
+pip install stochatreat
 ```
 
 ## Usage
