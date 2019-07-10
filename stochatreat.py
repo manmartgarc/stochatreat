@@ -156,14 +156,6 @@ def stochatreat(data: pd.DataFrame,
         # get the number of misfits
         n_misfit = int(block_size - n_belong)
 
-        # if the length of the block is smaller than the number of treatments
-        if len(slize) < treats:
-            slize['treat'] = R.choice(treats,
-                                      size=block_size,
-                                      p=probs,
-                                      replace=True)
-            slize.reset_index(drop=True, inplace=True)
-
         # generate indexes to slice
         locs = treat_blocks.cumsum()
 
