@@ -7,18 +7,20 @@ from stochatreat import stochatreat
 
 np.random.seed(42)
 
-N=1000000
-@pytest.fixture
-def df():
-    return pd.DataFrame(
-    data=
-        {
-            'id': np.arange(N),
-            'dummy': [1] * N,
-            'block1': np.random.randint(1, 100, size=N),
-            'block2': np.random.randint(0, 2, size=N)
+
+@pytest.fixture(params=[10000, 100000])
+def df(request):
+    N = request.param
+    df = pd.DataFrame(
+        data={
+            "id": np.arange(N),
+            "dummy": [1] * N,
+            "block1": np.random.randint(1, 100, size=N),
+            "block2": np.random.randint(0, 2, size=N),
         }
-)
+    )
+
+    return df
 
 @pytest.mark.parametrize('n_treats', [2, 3, 4, 5, 10])
 @pytest.mark.parametrize("block_cols", [['dummy'], ['dummy', 'block1'], ['block1', 'block2']])
