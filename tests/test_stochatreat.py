@@ -64,7 +64,7 @@ def test_stochatreat_probs(probs, block_cols, df):
 @pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
 def test_stochatreat_no_misfits(probs):
     """Test that overall treatment assignment proportions across all strata are as intended when strata are such that there are no misfits"""
-    N = 1_000_000
+    N = 10_000
     blocksize = 10
     df = pd.DataFrame(
         data={
@@ -92,7 +92,7 @@ def test_stochatreat_no_misfits(probs):
 @pytest.mark.parametrize("probs", standard_probs)
 def test_stochatreat_only_misfits(probs):
     """Test that overall treatment assignment proportions across all strata are as intended when strata are such that there are only misfits"""
-    N = 1_000_000
+    N = 1_000
     df = pd.DataFrame(
         data={
             "id": np.arange(N),
@@ -111,3 +111,24 @@ def test_stochatreat_only_misfits(probs):
     treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
 
     np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+
+
+@pytest.mark.parametrize(
+    "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
+)
+def test_stochatreat_block_ids(df, block_cols):
+    """Tests that the function returns the right number of block ids"""
+    treats = stochatreat(
+        data=df,
+        block_cols=block_cols,
+        treats=2,
+        idx_col="id",
+        random_state=42,
+    )
+
+    n_unique_blocks = len(df[block_cols].drop_duplicates())
+    
+    n_unique_block_ids = len(treats["block_id"].drop_duplicates())
+
+    np.testing.assert_equal(n_unique_block_ids, n_unique_blocks)
+    
