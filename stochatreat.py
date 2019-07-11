@@ -67,6 +67,8 @@ def stochatreat(data: pd.DataFrame,
     """
     R = np.random.RandomState(random_state)
 
+    data = data.copy()
+
     # =========================================================================
     # do checks
     # =========================================================================
