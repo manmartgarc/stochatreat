@@ -29,11 +29,12 @@ setuptools.setup(
         url='https://github.com/manmartgarc/stochatreat',
         keywords=[
             'randomization',
-             'block randomization'
+            'block randomization'
              ],
         install_requires=[
             'pandas',
-            'numpy'
+            'numpy',
+            'pytest'
             ],
         packages=setuptools.find_packages(),
         classifiers=[
