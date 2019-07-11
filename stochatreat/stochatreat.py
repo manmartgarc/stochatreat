@@ -72,6 +72,7 @@ def stochatreat(data: pd.DataFrame,
     # =========================================================================
     # do checks
     # =========================================================================
+    full_data = data.copy()
     data = data.copy()
 
     # sort data
@@ -213,9 +214,15 @@ def stochatreat(data: pd.DataFrame,
     ids_treats = pd.concat(slizes, sort=False)
     # make sure the order is the same as the original data
     ids_treats = ids_treats.sort_values(by=idx_col)
+    # map the concatenated blocks to block ids to retrieve the blocks
+    # within which randomization was done easily
+    concatenated_blocks_unique = ids_treats["block"].unique()
+    n_unique = len(concatenated_blocks_unique)
+    concatenated_blocks_map = dict(zip(concatenated_blocks_unique, range(n_unique)))
+    ids_treats["block_id"] = ids_treats["block"].map(concatenated_blocks_map)
+    ids_treats = ids_treats.drop(columns="block")
     # reset index
     ids_treats = ids_treats.reset_index(drop=True)
-
     ids_treats['treat'] = ids_treats['treat'].astype(np.int64)
 
     assert len(ids_treats) == len(data)
