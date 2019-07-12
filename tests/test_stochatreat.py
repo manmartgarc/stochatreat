@@ -59,3 +59,32 @@ def test_stochatreat_probs(probs, block_cols, df):
     treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
 
     np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+
+
+@pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
+def test_stochatreat_no_misfits(probs):
+    """Test that overall treatment assignment proportions across all strata are as intended when strata are such that there are no misfits"""
+    N = 1_000_000
+    blocksize = 10
+    df = pd.DataFrame(
+        data={
+            "id": np.arange(N),
+            "block": np.repeat(
+                np.arange(N / blocksize),
+                repeats=blocksize
+            )
+        }
+    )
+
+    treats = stochatreat(
+        data=df,
+        block_cols=['block'],
+        treats=len(probs),
+        idx_col="id",
+        probs=probs,
+        random_state=42,
+    )
+    treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
+
+    np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+
