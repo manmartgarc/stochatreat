@@ -111,3 +111,45 @@ def test_stochatreat_only_misfits(probs):
     treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
 
     np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+
+
+def get_within_strata_treatment_shares(treats):
+    """This helper function computes the treatment shares within strata"""
+    treatment_counts = treats.groupby(["block_id", "treat"]).\
+        count().rename(columns={"id": "treat_counts"}).\
+        reset_index()
+
+    block_counts = treats.groupby(["block_id"])[["id"]].\
+        count().rename(columns={"id": "block_counts"}).\
+        reset_index()
+    
+    treatment_shares = pd.merge(
+        treatment_counts, block_counts, on="block_id", how="left"
+    ).assign(treat_prop= lambda x: x["treat_counts"] / x["block_counts"])
+
+    return treatment_shares.drop(columns=["treat_counts", "block_counts"])
+
+
+@pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
+@pytest.mark.parametrize(
+    "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
+)
+def test_stochatreat_within_stratas_no_probs(n_treats, block_cols, df):
+    """Test that within strata treatment assignment proportions are as intended with equal treatment assignment probabilities"""
+    treats = stochatreat(
+        data=df, block_cols=block_cols, treats=n_treats, idx_col="id", random_state=42
+    )
+
+    treatment_shares = get_within_strata_treatment_shares(treats)
+
+    required_props = pd.DataFrame({"required_prop": n_treats*[1 / n_treats], "treat": range(n_treats)})
+    
+    comparison_df = pd.merge(
+        treatment_shares, required_props, on="treat", how="left"
+    )
+
+    np.testing.assert_almost_equal(
+        comparison_df["treat_prop"].values, 
+        comparison_df["required_prop"].values, 
+        decimal=1
+    )
