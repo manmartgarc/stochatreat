@@ -7,6 +7,8 @@ from stochatreat import stochatreat
 
 np.random.seed(42)
 
+standard_probs = [[0.1, 0.9], [1/3, 2/3], [0.5, 0.5], [2/3, 1/3], [0.9, 0.1]]
+
 
 @pytest.fixture(params=[10000, 100000])
 def df(request):
@@ -40,7 +42,7 @@ def test_stochatreat_no_probs(n_treats, block_cols, df):
     )
 
 
-@pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
+@pytest.mark.parametrize("probs", standard_probs)
 @pytest.mark.parametrize(
     "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
 )
