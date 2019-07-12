@@ -158,7 +158,6 @@ def stochatreat(data: pd.DataFrame,
         n_belong = int(treat_blocks.sum())
         # get the number of misfits
         n_misfit = int(block_size - n_belong)
-
         # generate indexes to slice
         locs = treat_blocks.cumsum()
 
