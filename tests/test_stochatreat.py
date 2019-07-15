@@ -164,14 +164,14 @@ def test_stochatreat_output_idx_col(treatments_dict):
     data = treatments_dict["data"]
     idx_col = treatments_dict["idx_col"]
     assert treatments_df[idx_col].dtype == data[idx_col].dtype, "Index column is missing"
-    
+
 
 def test_stochatreat_output_size(treatments_dict):
     """Tests that the function's output is of the right length'"""
     treatments_df = treatments_dict["treatments"]
     size = treatments_dict["size"]
     assert len(treatments_df) == size, "The size of the output does not match the sampled size"
-    
+
 
 def test_stochatreat_output_no_null_treats(treatments_dict):
     """Tests that the function's output treatments are all non null'"""
@@ -291,8 +291,7 @@ def test_stochatreat_block_ids(df, block_cols):
     )
 
     n_unique_blocks = len(df[block_cols].drop_duplicates())
-    
+
     n_unique_block_ids = len(treats["block_id"].drop_duplicates())
 
     np.testing.assert_equal(n_unique_block_ids, n_unique_blocks)
-    
