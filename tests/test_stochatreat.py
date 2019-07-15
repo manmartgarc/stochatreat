@@ -277,7 +277,7 @@ def test_stochatreat_only_misfits(probs):
     np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
 
 
-def get_within_strata_treatment_shares(treats):
+def get_within_strata_counts(treats):
     """This helper function computes the treatment shares within strata"""
     treatment_counts = treats.groupby(["block_id", "treat"]).\
         count().rename(columns={"id": "treat_counts"}).\
@@ -287,24 +287,27 @@ def get_within_strata_treatment_shares(treats):
         count().rename(columns={"id": "block_counts"}).\
         reset_index()
     
-    treatment_shares = pd.merge(
+    counts = pd.merge(
         treatment_counts, block_counts, on="block_id", how="left"
-    ).assign(treat_prop= lambda x: x["treat_counts"] / x["block_counts"])
+    )
 
-    return treatment_shares.drop(columns=["treat_counts", "block_counts"])
+    return counts
 
 
-def compute_comparison_df(treats, probs):
-    """This helper function computes the treatment shares within strata and lines them up with required probabilities"""
-    treatment_shares = get_within_strata_treatment_shares(treats)
+def compute_counts_diff(treats, probs):
+    """This helper function computes the treatment counts within strata and lines them up with required counts,
+    and returns the difference of the two"""
+    counts = get_within_strata_counts(treats)
 
     required_props = pd.DataFrame({"required_prop": probs, "treat": range(len(probs))})
     
     comparison_df = pd.merge(
-        treatment_shares, required_props, on="treat", how="left"
+        counts, required_props, on="treat", how="left"
     )
 
-    return comparison_df
+    comparison_df["desired_counts"] = comparison_df["block_counts"] * comparison_df["required_prop"]
+
+    return counts["treatment_counts"] - comparison_df["desired_counts"]
 
 
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
@@ -312,16 +315,15 @@ def compute_comparison_df(treats, probs):
     "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
 )
 def test_stochatreat_within_stratas_no_probs(n_treats, block_cols, df):
-    """Test that within strata treatment assignment proportions are as intended with equal treatment assignment probabilities"""
+    """Test that within strata treatment assignment proportions are no more than one unit away from the required proportions with equal treatment assignment probabilities"""
     treats = stochatreat(
         data=df, block_cols=block_cols, treats=n_treats, idx_col="id", random_state=42
     )
-    comparison_df = compute_comparison_df(treats, n_treats * [1 / n_treats])
+    counts_diff = compute_counts_diff(treats, n_treats * [1 / n_treats])
 
-    np.testing.assert_almost_equal(
-        comparison_df["treat_prop"].values, 
-        comparison_df["required_prop"].values, 
-        decimal=1
+    np.testing.assert_equal(
+        (np.absolute(counts_diff) > 1).sum(),
+        0
     )
 
 
@@ -330,7 +332,7 @@ def test_stochatreat_within_stratas_no_probs(n_treats, block_cols, df):
     "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
 )
 def test_stochatreat_within_stratas_probs(probs, block_cols, df):
-    """Test that within strata treatment assignment proportions are as intended with unequal treatment assignment probabilities"""
+    """Test that within strata treatment assignment proportions are no more than one unit away from the required proportions with unequal treatment assignment probabilities"""
     treats = stochatreat(
         data=df,
         block_cols=block_cols,
@@ -339,19 +341,18 @@ def test_stochatreat_within_stratas_probs(probs, block_cols, df):
         probs=probs,
         random_state=42,
     )
-    comparison_df = compute_comparison_df(treats, probs)
+    counts_diff = compute_counts_diff(treats, probs)
 
-    np.testing.assert_almost_equal(
-        comparison_df["treat_prop"].values, 
-        comparison_df["required_prop"].values, 
-        decimal=1
+    np.testing.assert_equal(
+        (np.absolute(counts_diff) > 1).sum(),
+        0
     )
 
 
 @pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
 def test_stochatreat_within_strata_no_misfits(probs):
-    """Test that within strata treatment assignment proportions are as intended when strata are such that there are no misfits"""
-    N = 1_000_000
+    """Test that within strata treatment assignment proportions are no more than one unit away from the required proportions when strata are such that there are no misfits"""
+    N = 10_000
     blocksize = 10
     df = pd.DataFrame(
         data={
@@ -371,12 +372,37 @@ def test_stochatreat_within_strata_no_misfits(probs):
         probs=probs,
         random_state=42,
     )
-    comparison_df = compute_comparison_df(treats, probs)
+    counts_diff = compute_counts_diff(treats, probs)
 
-    np.testing.assert_almost_equal(
-        comparison_df["treat_prop"].values, 
-        comparison_df["required_prop"].values, 
-        decimal=1
+    np.testing.assert_equal(
+        (np.absolute(counts_diff) > 1).sum(),
+        0
+    )
+
+
+@pytest.mark.parametrize("probs", standard_probs)
+def test_stochatreat_within_strata_only_misfits(probs):
+    """Test that within strata treatment assignment proportions are no more than one unit away from the required proportions when strata are such that there are only misfits"""
+    N = 1_000
+    df = pd.DataFrame(
+        data={
+            "id": np.arange(N),
+            "block": np.arange(N),
+        }
+    )
+    treats = stochatreat(
+        data=df,
+        block_cols=["block"],
+        treats=len(probs),
+        idx_col="id",
+        probs=probs,
+        random_state=42,
+    )
+    counts_diff = compute_counts_diff(treats, probs)
+
+    np.testing.assert_equal(
+        (np.absolute(counts_diff) > 1).sum(),
+        0
     )
 
 
