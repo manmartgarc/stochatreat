@@ -74,9 +74,6 @@ def stochatreat(data: pd.DataFrame,
     # =========================================================================
     data = data.copy()
 
-    # sort data
-    data = data.sort_values(by=idx_col)
-
     # create treatment array and probability array
     ts = list(range(treats))
     # if no probabilities stated
@@ -114,6 +111,9 @@ def stochatreat(data: pd.DataFrame,
     if type(block_cols) is str:
         block_cols = [block_cols]
 
+    # sort data
+    data = data.sort_values(by=idx_col)
+
     # combine cluster cells
     data = data[[idx_col] + block_cols].copy()
     data['block'] = data[block_cols].astype(str).sum(axis=1)
@@ -140,7 +140,7 @@ def stochatreat(data: pd.DataFrame,
         assert sum(reduced_sizes) == len(data)
 
     # keep only ids and concatenated clusters
-    data = data[data.columns[~data.columns.isin(block_cols)]]
+    data = data[[idx_col] + ['block']]
 
     # =========================================================================
     # assign treatments
@@ -158,7 +158,6 @@ def stochatreat(data: pd.DataFrame,
         n_belong = int(treat_blocks.sum())
         # get the number of misfits
         n_misfit = int(block_size - n_belong)
-
         # generate indexes to slice
         locs = treat_blocks.cumsum()
 
@@ -213,9 +212,12 @@ def stochatreat(data: pd.DataFrame,
     ids_treats = pd.concat(slizes, sort=False)
     # make sure the order is the same as the original data
     ids_treats = ids_treats.sort_values(by=idx_col)
+    # map the concatenated blocks to block ids to retrieve the blocks
+    # within which randomization was done easily
+    ids_treats["block_id"] = ids_treats.groupby(["block"]).ngroup()
+    ids_treats = ids_treats.drop(columns="block")
     # reset index
     ids_treats = ids_treats.reset_index(drop=True)
-
     ids_treats['treat'] = ids_treats['treat'].astype(np.int64)
 
     assert len(ids_treats) == len(data)
