@@ -34,7 +34,7 @@ setuptools.setup(
         install_requires=[
             'pandas',
             'numpy',
-            'pytest'
+            'pytest',
             ],
         packages=setuptools.find_packages(),
         classifiers=[

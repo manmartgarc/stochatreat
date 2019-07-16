@@ -9,9 +9,9 @@ Created on Thu Nov  8 14:34:47 2018
             number of strata.
 ===============================================================================
 """
+from typing import List
 import pandas as pd
 import numpy as np
-from typing import List
 
 # %%===========================================================================
 # Main
@@ -28,7 +28,7 @@ def stochatreat(data: pd.DataFrame,
                 ) -> pd.DataFrame:
     """
     Takes a dataframe and an arbitrary number of treatments over an
-    arbitrary number of clusters or strata.
+    arbitrary number of blocks or strata.
 
     Attempts to return equally sized treatment groups, while randomly
     assigning misfits (left overs from groups not divisible by the number
@@ -54,17 +54,17 @@ def stochatreat(data: pd.DataFrame,
 
     Usage
     -----
-    Single cluster:
+    Single block:
         >>> treats = stochatreat(data=data,             # your dataframe
-                                 block_cols='cluster1', # the blocking variable
+                                 block_cols='block1', # the blocking variable
                                  treats=2,              # including control
                                  idx_col='myid',        # the unique id column
                                  random_state=42)       # seed for rng
         >>> data = data.merge(treats, how='left', on='myid')
 
-    Multiple clusters:
+    Multiple blocks:
         >>> treats = stochatreat(data=data,
-                                 block_cols=['cluster1', 'cluster2'],
+                                 block_cols=['block1', 'block2'],
                                  treats=2,
                                  probs=[1/3, 2/3],
                                  idx_col='myid',
@@ -86,11 +86,15 @@ def stochatreat(data: pd.DataFrame,
         probs = np.array([frac] * len(ts))
     elif probs != [None]:
         probs = np.array(probs)
-        assertmsg = 'the probabilities must add up to 1'
-        assert probs.sum() == 1, assertmsg
+        if probs.sum() != 1:
+            raise ValueError('The probabilities must add up to 1')
 
     assertmsg = 'length of treatments and probs must be the same'
     assert len(ts) == len(probs), assertmsg
+
+    # check if dataframe is empty
+    if data.empty:
+        raise ValueError('Make sure that your dataframe is not empty.')
 
     # check length of data
     if len(data) < 1:
@@ -111,14 +115,14 @@ def stochatreat(data: pd.DataFrame,
     if data[idx_col].duplicated(keep=False).sum() > 0:
         raise ValueError('Values in idx_col are not unique.')
 
-    # deal with multiple clusters
+    # deal with multiple blocks
     if type(block_cols) is str:
         block_cols = [block_cols]
 
     # sort data
     data = data.sort_values(by=idx_col)
 
-    # combine cluster cells
+    # combine block cells
     data = data[[idx_col] + block_cols].copy()
     data['block'] = data[block_cols].astype(str).sum(axis=1)
     blocks = sorted(set(data['block']))
@@ -143,17 +147,17 @@ def stochatreat(data: pd.DataFrame,
 
         assert sum(reduced_sizes) == len(data)
 
-    # keep only ids and concatenated clusters
+    # keep only ids and concatenated blocks
     data = data[[idx_col] + ['block']]
 
     # =========================================================================
     # assign treatments
     # =========================================================================
     slizes = []
-    for i, cluster in enumerate(blocks):
+    for i, block in enumerate(blocks):
         new_slize = []
-        # slize data by cluster
-        slize = data.loc[data['block'] == cluster].copy()
+        # slize data by block
+        slize = data.loc[data['block'] == block].copy()
         # get the block size
         block_size = slize.shape[0]
 
@@ -162,6 +166,7 @@ def stochatreat(data: pd.DataFrame,
         n_belong = int(treat_blocks.sum())
         # get the number of misfits
         n_misfit = int(block_size - n_belong)
+
         # generate indexes to slice
         locs = treat_blocks.cumsum()
 
@@ -189,24 +194,27 @@ def stochatreat(data: pd.DataFrame,
             adherents = slize.iloc[:n_belong].copy()
             misfits = slize.iloc[n_belong:].copy()
 
-            # assign treatmens on each group
-            for aux in [adherents, misfits]:
-                # assign random values
-                aux['rand'] = R.uniform(size=len(aux))
-                # sort by random
-                aux = aux.sort_values(by='rand')
-                # drop the rand column
-                aux = aux.drop(columns='rand')
-                # reset index in order to keep original id
-                aux = aux.reset_index(drop=True)
-                # assign treatment by index
-                for i, treat in enumerate(ts):
-                    if treat == 0:
-                        aux.loc[:locs[i], 'treat'] = treat
-                    else:
-                        aux.loc[locs[i - 1]:locs[i], 'treat'] = treat
-                new_slize.append(aux)
-                del aux
+            # assign adherents
+            adherents['rand'] = R.uniform(size=len(adherents))
+            # sort by random
+            adherents = adherents.sort_values(by='rand')
+            # drop the rand column
+            adherents = adherents.drop(columns='rand')
+            # reset index in order to keep original id
+            adherents = adherents.reset_index(drop=True)
+            # assign treatment by index
+            for i, treat in enumerate(ts):
+                if treat == 0:
+                    adherents.loc[:locs[i], 'treat'] = treat
+                else:
+                    adherents.loc[locs[i - 1]:locs[i], 'treat'] = treat
+            new_slize.append(adherents)
+
+            # assign misfits
+            misfits['treat'] = R.choice(range(treats),
+                                        size=n_misfit,
+                                        p=probs)
+            new_slize.append(misfits)
             new_slize = pd.concat(new_slize)
 
         # append blocks together
