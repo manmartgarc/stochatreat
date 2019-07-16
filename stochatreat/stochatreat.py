@@ -24,7 +24,8 @@ def stochatreat(data: pd.DataFrame,
                 probs: List[float] = [None],
                 random_state: int = 42,
                 idx_col: str = None,
-                size: int = None) -> pd.Series:
+                size: int = None
+                ) -> pd.DataFrame:
     """
     Takes a dataframe and an arbitrary number of treatments over an
     arbitrary number of clusters or strata.
@@ -35,13 +36,16 @@ def stochatreat(data: pd.DataFrame,
 
     Parameters
     ----------
-    data        : pandas.code.frame.DataFrame
-    block_cols  : string or list of strings
-    treats      : int
-    probs       : int
-    random_state: int
-    idx_col     : string
-    size        : int
+    data        :   The data that contains unique ids and the
+                    stratification columns.
+    block_cols  :   The columns in 'data' that you want to stratify over.
+    treats      :   The number of treatments you would like to
+                    implement, including control.
+    probs       :   The assignment probabilities for each of the treatments.
+    random_state:   The seed for the rng instance.
+    idx_col     :   The column name that indicates the ids for your data.
+    size        :   The size of the sample if you would like to sample
+                    from your data.
 
     Returns
     -------
