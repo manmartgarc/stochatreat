@@ -100,11 +100,6 @@ def stochatreat(data: pd.DataFrame,
     if len(data) < 1:
         raise ValueError('Make sure your data has enough observations.')
 
-#    # check if necessary columns are in dataframe
-#    cols = np.array(block_cols + [idx_col])
-#    if np.sum(np.isin(cols), data.columns) != len(cols):
-#        raise KeyError('Make sure that the necessary columns are in your data')
-
     # if idx_col parameter was not defined.
     if idx_col is None:
         data = data.reset_index(drop=True)
