@@ -120,7 +120,7 @@ def stochatreat(data: pd.DataFrame,
         block_cols = [block_cols]
 
     # sort data
-#    data = data.sort_values(by=idx_col)
+    data = data.sort_values(by=idx_col)
 
     # combine block cells
     data = data[[idx_col] + block_cols].copy()
