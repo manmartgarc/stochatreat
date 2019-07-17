@@ -106,14 +106,13 @@ def stochatreat(data: pd.DataFrame,
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
+    # check for unique identifiers
+    elif data[idx_col].duplicated(keep=False).sum() > 0:
+        raise ValueError('Values in idx_col are not unique.')
 
     # if size is larger than sample universe
     if size is not None and size > len(data):
         raise ValueError('Size argument is larger than the sample universe.')
-
-    # check for unique identifiers
-    if data[idx_col].duplicated(keep=False).sum() > 0:
-        raise ValueError('Values in idx_col are not unique.')
 
     # deal with multiple blocks
     if type(block_cols) is str:
