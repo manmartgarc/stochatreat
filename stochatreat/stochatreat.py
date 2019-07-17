@@ -106,14 +106,13 @@ def stochatreat(data: pd.DataFrame,
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
+    # check for unique identifiers
+    elif data[idx_col].duplicated(keep=False).sum() > 0:
+        raise ValueError('Values in idx_col are not unique.')
 
     # if size is larger than sample universe
     if size is not None and size > len(data):
         raise ValueError('Size argument is larger than the sample universe.')
-
-    # check for unique identifiers
-    if data[idx_col].duplicated(keep=False).sum() > 0:
-        raise ValueError('Values in idx_col are not unique.')
 
     # deal with multiple blocks
     if type(block_cols) is str:
@@ -194,21 +193,22 @@ def stochatreat(data: pd.DataFrame,
             adherents = slize.iloc[:n_belong].copy()
             misfits = slize.iloc[n_belong:].copy()
 
-            # assign adherents
-            adherents['rand'] = R.uniform(size=len(adherents))
-            # sort by random
-            adherents = adherents.sort_values(by='rand')
-            # drop the rand column
-            adherents = adherents.drop(columns='rand')
-            # reset index in order to keep original id
-            adherents = adherents.reset_index(drop=True)
-            # assign treatment by index
-            for i, treat in enumerate(ts):
-                if treat == 0:
-                    adherents.loc[:locs[i], 'treat'] = treat
-                else:
-                    adherents.loc[locs[i - 1]:locs[i], 'treat'] = treat
-            new_slize.append(adherents)
+            if not adherents.empty:
+                # assign adherents
+                adherents['rand'] = R.uniform(size=len(adherents))
+                # sort by random
+                adherents = adherents.sort_values(by='rand')
+                # drop the rand column
+                adherents = adherents.drop(columns='rand')
+                # reset index in order to keep original id
+                adherents = adherents.reset_index(drop=True)
+                # assign treatment by index
+                for i, treat in enumerate(ts):
+                    if treat == 0:
+                        adherents.loc[:locs[i], 'treat'] = treat
+                    else:
+                        adherents.loc[locs[i - 1]:locs[i], 'treat'] = treat
+                new_slize.append(adherents)
 
             # assign misfits
             misfits['treat'] = R.choice(range(treats),
