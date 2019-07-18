@@ -16,14 +16,17 @@ def correct_params():
     params = {
         "probs": [0.1, 0.9],
         "treat": 2,
-        "data": pd.DataFrame(data={"id": np.arange(100), "block": np.arange(100)}),
+        "data": pd.DataFrame(data={"id": np.arange(100),
+                                   "block": np.arange(100)}),
         "idx_col": "id",
     }
     return params
 
 
 def test_stochatreat_input_invalid_probs(correct_params):
-    """Tests that the function rejects probabilities that don't add up to one"""
+    """
+    Tests that the function rejects probabilities that don't add up to one
+    """
     probs_not_sum_to_one = [0.1, 0.2]
     with pytest.raises(Exception):
         stochatreat(
@@ -36,7 +39,10 @@ def test_stochatreat_input_invalid_probs(correct_params):
 
 
 def test_stochatreat_input_more_treats_than_probs(correct_params):
-    """Tests that the function raises an error for treatments and probs of different sizes"""
+    """
+    Tests that the function raises an error for treatments and probs
+    of different sizes
+    """
     treat_too_large = 3
     with pytest.raises(Exception):
         stochatreat(
@@ -49,12 +55,14 @@ def test_stochatreat_input_more_treats_than_probs(correct_params):
 
 
 def test_stochatreat_input_empty_data(correct_params):
-    """Tests that the function raises an error when an empty dataframe is passed"""
-    empty_data = pd.DataFrame({})
+    """
+    Tests that the function raises an error when an empty dataframe is passed
+    """
+    empty_data = pd.DataFrame()
     with pytest.raises(ValueError):
         stochatreat(
             data=empty_data,
-            block_cols=["block"],
+            block_cols="block",
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -62,7 +70,10 @@ def test_stochatreat_input_empty_data(correct_params):
 
 
 def test_stochatreat_input_idx_col_str(correct_params):
-    """Tests that the function rejects an idx_col parameter that is not a string or None"""
+    """
+    Tests that the function rejects an idx_col parameter that is not a
+    string or None
+    """
     idx_col_not_str = 0
     with pytest.raises(TypeError):
         stochatreat(
@@ -75,7 +86,9 @@ def test_stochatreat_input_idx_col_str(correct_params):
 
 
 def test_stochatreat_input_invalid_size(correct_params):
-    """Tests that the function rejects a sampling size larger than the data count"""
+    """
+    Tests that the function rejects a sampling size larger than the data count
+    """
     size_bigger_than_sampling_universe_size = 101
     with pytest.raises(ValueError):
         stochatreat(
@@ -89,7 +102,10 @@ def test_stochatreat_input_invalid_size(correct_params):
 
 
 def test_stochatreat_input_idx_col_unique(correct_params):
-    """Tests that the function raises an error if the idx_col is not a primary key of the data"""
+    """
+    Tests that the function raises an error if the idx_col is not a
+    primary key of the data
+    """
     data_with_idx_col_with_duplicates = pd.DataFrame(
         data={"id": 1, "block": np.arange(100)}
     )
@@ -149,7 +165,8 @@ def treatments_dict():
 def test_stochatreat_output_type(treatments_dict):
     """Tests that the function's output is a pd DataFrame"""
     treatments_df = treatments_dict["treatments"]
-    assert isinstance(treatments_df, pd.DataFrame), "The output is not a DataFrame"
+    asrtmsg = "The output is not a DataFrame"
+    assert isinstance(treatments_df, pd.DataFrame), asrtmsg
 
 
 def test_stochatreat_output_treat_col(treatments_dict):
@@ -161,7 +178,8 @@ def test_stochatreat_output_treat_col(treatments_dict):
 def test_stochatreat_output_treat_col_dtype(treatments_dict):
     """Tests that the function's output's 'treat` column is an int column"""
     treatments_df = treatments_dict["treatments"]
-    assert treatments_df["treat"].dtype == np.int64, "Treatment column is missing"
+    asrtmsg = "Treatment column is missing"
+    assert treatments_df["treat"].dtype == np.int64, asrtmsg
 
 
 def test_stochatreat_output_block_id_col(treatments_dict):
@@ -171,33 +189,46 @@ def test_stochatreat_output_block_id_col(treatments_dict):
 
 
 def test_stochatreat_output_block_id_col_dtype(treatments_dict):
-    """Tests that the function's output's 'block_id` column is an int column'"""
+    """
+    Tests that the function's output's 'block_id` column is an int column
+    """
     treatments_df = treatments_dict["treatments"]
-    assert treatments_df["block_id"].dtype == np.int64, "Block_id column is missing"
+    asrtmsg = "Block_id column is missing"
+    assert treatments_df["block_id"].dtype == np.int64, asrtmsg
 
 
 def test_stochatreat_output_idx_col(treatments_dict):
-    """Tests that the function's output's 'idx_col` column is the same type as the input'"""
+    """
+    Tests that the function's output's 'idx_col` column is the same type
+    as the input'
+    """
     treatments_df = treatments_dict["treatments"]
     data = treatments_dict["data"]
     idx_col = treatments_dict["idx_col"]
-    assert treatments_df[idx_col].dtype == data[idx_col].dtype, "Index column is missing"
+    asrtmsg = "Index column is missing"
+    assert treatments_df[idx_col].dtype == data[idx_col].dtype, asrtmsg
 
 
 def test_stochatreat_output_size(treatments_dict):
-    """Tests that the function's output is of the right length'"""
+    """Tests that the function's output is of the right length"""
     treatments_df = treatments_dict["treatments"]
     size = treatments_dict["size"]
-    assert len(treatments_df) == size, "The size of the output does not match the sampled size"
+    asrtmsg = "The size of the output does not match the sampled size"
+    assert len(treatments_df) == size, asrtmsg
 
 
 def test_stochatreat_output_no_null_treats(treatments_dict):
     """Tests that the function's output treatments are all non null'"""
     treatments_df = treatments_dict["treatments"]
-    assert treatments_df["treat"].isnull().sum() == 0, "There are null assignments"
+    asrtmsg = "There are null assignments"
+    assert treatments_df["treat"].isnull().sum() == 0, asrtmsg
 
 
-standard_probs = [[0.1, 0.9], [1 / 3, 2 / 3], [0.5, 0.5], [2 / 3, 1 / 3], [0.9, 0.1]]
+standard_probs = [[0.1, 0.9],
+                  [1/3, 2/3],
+                  [0.5, 0.5],
+                  [2/3, 1/3],
+                  [0.9, 0.1]]
 
 
 @pytest.fixture(params=[10000, 100000])
@@ -216,25 +247,33 @@ def df(request):
 
 
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
-@pytest.mark.parametrize("block_cols", [["dummy"], ["block1"], ["block1", "block2"]])
+@pytest.mark.parametrize("block_cols", [["dummy"],
+                                        ["block1"],
+                                        ["block1", "block2"]])
 def test_stochatreat_no_probs(n_treats, block_cols, df):
     """
     Tests that overall treatment assignment proportions across all strata are as intended 
     with equal treatment assignment probabilities
     """
     treats = stochatreat(
-        data=df, block_cols=block_cols, treats=n_treats, idx_col="id", random_state=42
+        data=df,
+        block_cols=block_cols,
+        treats=n_treats,
+        idx_col="id",
+        random_state=42
     )
 
-    treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
+    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
-        treatment_shares, np.array([1 / n_treats] * n_treats), decimal=3
+        treatment_shares, np.array([1 / n_treats] * n_treats), decimal=2
     )
 
 
 @pytest.mark.parametrize("probs", standard_probs)
-@pytest.mark.parametrize("block_cols", [["dummy"], ["block1"], ["block1", "block2"]])
+@pytest.mark.parametrize("block_cols", [["dummy"],
+                                        ["block1"],
+                                        ["block1", "block2"]])
 def test_stochatreat_probs(probs, block_cols, df):
     """
     Tests that overall treatment assignment proportions across all strata are as intended
@@ -248,9 +287,11 @@ def test_stochatreat_probs(probs, block_cols, df):
         probs=probs,
         random_state=42,
     )
-    treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
+    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
-    np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+    np.testing.assert_almost_equal(
+            treatment_shares, np.array(probs), decimal=2
+            )
 
 
 @pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
@@ -276,9 +317,11 @@ def test_stochatreat_no_misfits(probs):
         probs=probs,
         random_state=42,
     )
-    treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
+    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
-    np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+    np.testing.assert_almost_equal(
+            treatment_shares, np.array(probs), decimal=2
+            )
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -302,9 +345,11 @@ def test_stochatreat_only_misfits(probs):
         probs=probs,
         random_state=42,
     )
-    treatment_shares = treats.groupby(["treat"])["id"].count() / treats.shape[0]
+    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
-    np.testing.assert_almost_equal(treatment_shares, np.array(probs), decimal=3)
+    np.testing.assert_almost_equal(
+            treatment_shares, np.array(probs), decimal=2
+            )
 
 
 def lcm(denominators):
@@ -452,7 +497,7 @@ def test_stochatreat_global_strategy(probs, block_cols, df):
 
 @pytest.mark.parametrize(
     "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
-)
+    )
 def test_stochatreat_block_ids(df, block_cols):
     """Tests that the function returns the right number of block ids"""
     treats = stochatreat(
