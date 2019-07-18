@@ -12,7 +12,7 @@ Created on Thu Nov  8 14:34:47 2018
 from typing import List
 from fractions import Fraction
 from functools import reduce
-from math import gcd 
+from math import gcd
 import pandas as pd
 import numpy as np
 
@@ -50,23 +50,23 @@ def stochatreat(data: pd.DataFrame,
     idx_col         :   The column name that indicates the ids for your data.
     size            :   The size of the sample if you would like to sample
                         from your data.
-    misfit_strategy :   The strategy used to assign misfits, can be one of 'stratum'
-                        or 'global'. If 'stratum' used will assign randomly within each
-                        stratum following the wanted distribution. If 'global' will
-                        group the misfits into one stratum and do a full assignment
-                        procedure in this new stratum with local random assignments of 
-                        the misfits in this stratum
+    misfit_strategy :   The strategy used to assign misfits. Can be one of
+                        'stratum' or 'global'.
+                        If 'stratum', will assign misfits randomly and
+                        independently within each stratum using probs.
+                        If 'global', will group all misfits into one stratum and
+                        do a full assignment procedure in this new stratum with
+                        local random assignments of the misfits in this stratum
 
     Returns
     -------
-    The function returns a dataframe with the treatment assignment that
-    can be merged with the original data frame.
+    pandas.DataFrame with idx_col, treat (treatment assignments) and block_ids
 
     Usage
     -----
     Single block:
         >>> treats = stochatreat(data=data,             # your dataframe
-                                 block_cols='block1', # the blocking variable
+                                 block_cols='block1',   # the blocking variable
                                  treats=2,              # including control
                                  idx_col='myid',        # the unique id column
                                  random_state=42)       # seed for rng
@@ -127,7 +127,7 @@ def stochatreat(data: pd.DataFrame,
     # deal with multiple blocks
     if type(block_cols) is str:
         block_cols = [block_cols]
-    
+
     if misfit_strategy not in ('stratum', 'global'):
         raise ValueError("misfit_strategy must be one of 'stratum' or 'global'")
 
@@ -162,12 +162,19 @@ def stochatreat(data: pd.DataFrame,
     # keep only ids and concatenated blocks
     data = data[[idx_col] + ['block']]
 
-    # get probabilities fractions denominators
+    # Treatment assignment proceeds in two stages within each block:
+    # 1. In as far as units can be neatly divided in the proportions given by
+    #    prob they are so divided.
+    # 2. Any leftovers ("misfits") are dealt with using either of the methods
+    #    described in the docstring
+
+    # 1. determine how to divide cleanly as much as possible
+
+    # convert all probs to fractions and get the lowest common multiple of their
+    # denominators
     prob_denominators = [
         Fraction(prob).limit_denominator().denominator for prob in probs
     ]
-
-    # get the lowest common multiple of the denominators
     lcm_prob_denominators = lcm(prob_denominators)
 
     # produce the assignment mask that we will use to achieve perfect proportions
@@ -176,52 +183,48 @@ def stochatreat(data: pd.DataFrame,
     # =========================================================================
     # re-arrange blocks
     # =========================================================================
-    
-    # separate misfits in their own block
-    if misfit_strategy == "global":
-        slizes = []
-        global_misfits = []
 
-        for i, block in enumerate(blocks):
-            # slize data by block
-            slize = data.loc[data['block'] == block].copy()
+    slizes = []
+    global_misfits = []
+
+    # slice the data into blocks
+    for i, block in enumerate(blocks):
+        # slize data by block
+        slize = data.loc[data['block'] == block].copy()
+
+        # if using the `global` strategy, throw misfits in their own block
+        if misfit_strategy == "global":
             # get the block size
             block_size = slize.shape[0]
             n_misfit = block_size % lcm_prob_denominators
             # partition into misfits / non-misfits
             misfit_data = slize.sample(n_misfit)
             slize = slize.drop(index=misfit_data.index)
-            
-            global_misfits.append(misfit_data)
-            slizes.append(slize)
 
-        # prepare the misfit block
-        global_misfits = pd.concat(global_misfits)
+            global_misfits.append(misfit_data)
+
+        slizes.append(slize)
+
+    if misfit_strategy == "global":
         if 'misfit_block' in blocks:
             raise ValueError("There is already a block called 'misfit_block' in the data.")
+
+        # throw all misfits into a single block, then append to the others
+        global_misfits = pd.concat(global_misfits)
         global_misfits['block'] = 'misfit_block'
 
-        # add to the blocks
         slizes.append(global_misfits)
-        data = pd.concat(slizes)
-
-        blocks.add('misfit_block')
 
     # =========================================================================
     # assign treatments
     # =========================================================================
-    slizes = []
-    for i, block in enumerate(blocks):
-        # slize data by block
-        slize = data.loc[data['block'] == block].copy()
-        # get the block size
+    for slize in slizes:
+        # set up first-round treatment ids in the desired proportions
         block_size = slize.shape[0]
-
-        # assign treatments in wanted proportions
         n_repeat_mask = block_size // lcm_prob_denominators
         block_treatments = np.repeat(treat_mask, n_repeat_mask)
 
-        # deal with misfits
+        # add misfit treatment ids
         n_misfit = block_size % lcm_prob_denominators
 
         if n_misfit > 0:
@@ -232,22 +235,20 @@ def stochatreat(data: pd.DataFrame,
             )
             block_treatments = np.r_[block_treatments, misfit_treatments]
 
+        # shuffle, then assign the treatment ids to the block
         np.random.shuffle(block_treatments)
         slize['treat'] = block_treatments
 
-        # append blocks together
-        slizes.append(slize)
-
-    # concatenate all blocks together
+    # concatenate all slizes
     ids_treats = pd.concat(slizes, sort=False)
+
     # make sure the order is the same as the original data
     ids_treats = ids_treats.sort_values(by=idx_col)
-    # map the concatenated blocks to block ids to retrieve the blocks
-    # within which randomization was done easily
+
+    # add unique integer ids for the blocks
     ids_treats["block_id"] = ids_treats.groupby(["block"]).ngroup()
-    ids_treats = ids_treats.drop(columns="block")
-    # reset index
-    ids_treats = ids_treats.reset_index(drop=True)
+    ids_treats = ids_treats.drop(columns=["block"])
+
     ids_treats['treat'] = ids_treats['treat'].astype(np.int64)
 
     assert len(ids_treats) == len(data)
@@ -255,5 +256,7 @@ def stochatreat(data: pd.DataFrame,
     return ids_treats
 
 
-def lcm(denominators):
-    return reduce(lambda a,b: a*b // gcd(a,b), denominators)
+def lcm(l):
+    """returns the least common multiple of a list of integers
+    """
+    return reduce(lambda a,b: a*b // gcd(a,b), l)
