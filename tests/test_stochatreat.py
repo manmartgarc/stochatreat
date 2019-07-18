@@ -342,19 +342,19 @@ def compute_counts_diff(treats, probs):
     """
     This helper function computes the treatment counts within strata and lines them up 
     with required counts, and returns the different treatment counts aggregated at the block level
+    as well as the dataframe with the different counts used in some tests
     """
     counts = get_within_strata_counts(treats)
 
     required_props = pd.DataFrame({"required_prop": probs, "treat": range(len(probs))})
-    
     comparison_df = pd.merge(
         counts, required_props, on="treat", how="left"
     )
-
     comparison_df["desired_counts"] = comparison_df["block_counts"] * comparison_df["required_prop"]
+    
     counts_diff = (counts["treat_counts"] - comparison_df["desired_counts"]).abs()
 
-    return counts_diff
+    return counts_diff, comparison_df
 
 
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
@@ -371,9 +371,9 @@ def test_stochatreat_within_strata_no_probs(n_treats, block_cols, df):
     treats = stochatreat(
         data=df, block_cols=block_cols, treats=n_treats, idx_col="id", random_state=42
     )
-    counts_diff = compute_counts_diff(treats, probs)
+    counts_diff, _ = compute_counts_diff(treats, probs)
 
-    assert (counts_diff < lcm_prob_denominators).all()
+    assert (counts_diff < lcm_prob_denominators).all(), "The counts differences exceed the bound that misfit allocation should not exceed"
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -394,9 +394,9 @@ def test_stochatreat_within_strata_probs(probs, block_cols, df):
         probs=probs,
         random_state=42,
     )
-    counts_diff = compute_counts_diff(treats, probs)
+    counts_diff, _ = compute_counts_diff(treats, probs)
 
-    assert (counts_diff < lcm_prob_denominators).all()
+    assert (counts_diff < lcm_prob_denominators).all(), "The counts differences exceed the bound that misfit allocation should not exceed"
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -424,9 +424,30 @@ def test_stochatreat_within_strata_no_misfits(probs):
         probs=probs,
         random_state=42,
     )
-    counts_diff = compute_counts_diff(treats, probs)
+    counts_diff, _ = compute_counts_diff(treats, probs)
 
-    assert (counts_diff == 0).all()
+    assert (counts_diff == 0).all(), "The required proportions are not reached without misfits"
+
+
+@pytest.mark.parametrize("probs", standard_probs)
+@pytest.mark.parametrize(
+    "block_cols", [["dummy"], ["block1"], ["block1", "block2"]]
+)
+def test_stochatreat_global_strategy(probs, block_cols, df):
+    treats = stochatreat(
+        data=df,
+        block_cols=block_cols,
+        treats=len(probs),
+        idx_col="id",
+        probs=probs,
+        random_state=42,
+        misfit_strategy="global"
+    )
+    counts_diff, comparison_df = compute_counts_diff(treats, probs)
+    comparison_df["counts_diff"] = counts_diff
+    block_counts_diff = comparison_df.groupby(["block_id"]).sum()["counts_diff"]
+
+    assert (block_counts_diff != 0).sum() <= 1, "There is more than one block with misfits"
 
 
 @pytest.mark.parametrize(
