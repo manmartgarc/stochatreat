@@ -127,6 +127,9 @@ def stochatreat(data: pd.DataFrame,
     # deal with multiple blocks
     if type(block_cols) is str:
         block_cols = [block_cols]
+    
+    if misfit_strategy not in ('stratum', 'global'):
+        raise ValueError("misfit_strategy must be one of 'stratum' or 'global'")
 
     # sort data
     data = data.sort_values(by=idx_col)
@@ -171,6 +174,40 @@ def stochatreat(data: pd.DataFrame,
     treat_mask = np.repeat(ts, (lcm_prob_denominators*probs).astype(int))
 
     # =========================================================================
+    # re-arrange blocks
+    # =========================================================================
+    
+    # separate misfits in their own block
+    if misfit_strategy == "global":
+        slizes = []
+        global_misfits = []
+
+        for i, block in enumerate(blocks):
+            # slize data by block
+            slize = data.loc[data['block'] == block].copy()
+            # get the block size
+            block_size = slize.shape[0]
+            n_misfit = block_size % lcm_prob_denominators
+            # partition into misfits / non-misfits
+            misfit_data = slize.sample(n_misfit)
+            slize = slize.drop(index=misfit_data.index)
+            
+            global_misfits.append(misfit_data)
+            slizes.append(slize)
+
+        # prepare the misfit block
+        global_misfits = pd.concat(global_misfits)
+        if 'misfit_block' in blocks:
+            raise ValueError("There is already a block called 'misfit_block' in the data.")
+        global_misfits['block'] = 'misfit_block'
+
+        # add to the blocks
+        slizes.append(global_misfits)
+        data = pd.concat(slizes)
+
+        blocks.add('misfit_block')
+
+    # =========================================================================
     # assign treatments
     # =========================================================================
     slizes = []
@@ -190,42 +227,18 @@ def stochatreat(data: pd.DataFrame,
         n_misfit = block_size % lcm_prob_denominators
 
         if n_misfit > 0:
-            if misfit_strategy == "stratum":
-                misfit_treatments = R.choice(
-                    range(treats),
-                    size=n_misfit,
-                    p=probs
-                )
-                block_treatments = np.r_[block_treatments, misfit_treatments]
-            elif misfit_strategy == "global":
-                misfit_data = slize.sample(n_misfit)
-                slize = slize.drop(index=misfit_data.index)
-                global_misfits.append(misfit_data)
-            else:
-                raise ValueError("strategy must be one of 'stratum' or 'global'")
+            misfit_treatments = R.choice(
+                range(treats),
+                size=n_misfit,
+                p=probs
+            )
+            block_treatments = np.r_[block_treatments, misfit_treatments]
 
         np.random.shuffle(block_treatments)
         slize['treat'] = block_treatments
 
         # append blocks together
         slizes.append(slize)
-    
-    # deal with the misfit stratum
-    if misfit_strategy == "global":
-        global_misfits = pd.concat(global_misfits)
-        # get the block size
-        block_size = global_misfits.shape[0]
-        # assign treatments in wanted proportions
-        n_repeat_mask = block_size // lcm_prob_denominators
-        block_treatments = np.repeat(treat_mask, n_repeat_mask)
-        # deal with misfits
-        n_misfit = block_size % lcm_prob_denominators
-        misfit_treatments = R.choice(range(treats), size=n_misfit, p=probs)
-        block_treatments = np.r_[block_treatments, misfit_treatments]
-        np.random.shuffle(block_treatments)
-        global_misfits['treat'] = block_treatments
-        # append blocks together
-        slizes.append(global_misfits)
 
     # concatenate all blocks together
     ids_treats = pd.concat(slizes, sort=False)
