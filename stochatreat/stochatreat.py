@@ -211,8 +211,6 @@ def stochatreat(data: pd.DataFrame,
     # assign treatments
     # =========================================================================
     slizes = []
-    # will fill this array if strategy='global'
-    global_misfits = []
     for i, block in enumerate(blocks):
         # slize data by block
         slize = data.loc[data['block'] == block].copy()
