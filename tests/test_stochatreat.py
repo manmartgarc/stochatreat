@@ -103,6 +103,20 @@ def test_stochatreat_input_idx_col_unique(correct_params):
         )
 
 
+def test_stochatreat_input_invalid_strategy(correct_params):
+    """Tests that the function raises an error if an invalid strategy string is passed"""
+    unknown_strategy = "unknown"
+    with pytest.raises(ValueError):
+        stochatreat(
+            data=correct_params["data"],
+            block_cols=["block"],
+            treats=correct_params["treat"],
+            idx_col=correct_params["idx_col"],
+            probs=correct_params["probs"],
+            misfit_strategy=unknown_strategy,
+        )
+
+
 @pytest.fixture
 def treatments_dict():
     """fixture of stochatreat() output to test output format"""
@@ -205,7 +219,7 @@ def df(request):
 @pytest.mark.parametrize("block_cols", [["dummy"], ["block1"], ["block1", "block2"]])
 def test_stochatreat_no_probs(n_treats, block_cols, df):
     """
-    Test that overall treatment assignment proportions across all strata are as intended 
+    Tests that overall treatment assignment proportions across all strata are as intended 
     with equal treatment assignment probabilities
     """
     treats = stochatreat(
@@ -223,7 +237,7 @@ def test_stochatreat_no_probs(n_treats, block_cols, df):
 @pytest.mark.parametrize("block_cols", [["dummy"], ["block1"], ["block1", "block2"]])
 def test_stochatreat_probs(probs, block_cols, df):
     """
-    Test that overall treatment assignment proportions across all strata are as intended
+    Tests that overall treatment assignment proportions across all strata are as intended
     with unequal treatment assignment probabilities
     """
     treats = stochatreat(
@@ -242,7 +256,7 @@ def test_stochatreat_probs(probs, block_cols, df):
 @pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
 def test_stochatreat_no_misfits(probs):
     """
-    Test that overall treatment assignment proportions across all strata are as intended 
+    Tests that overall treatment assignment proportions across all strata are as intended 
     when strata are such that there are no misfits
     """
     N = 10_000
@@ -270,7 +284,7 @@ def test_stochatreat_no_misfits(probs):
 @pytest.mark.parametrize("probs", standard_probs)
 def test_stochatreat_only_misfits(probs):
     """
-    Test that overall treatment assignment proportions across all strata are as intended
+    Tests that overall treatment assignment proportions across all strata are as intended
     when strata are such that there are only misfits
     """
     N = 1_000
@@ -349,7 +363,7 @@ def compute_counts_diff(treats, probs):
 )
 def test_stochatreat_within_strata_no_probs(n_treats, block_cols, df):
     """
-    Test that within strata treatment assignment proportions are only as far from the required 
+    Tests that within strata treatment assignment proportions are only as far from the required 
     proportions as misfit assignment randomization allows with equal treatment assignment probabilities
     """
     probs = n_treats * [1 / n_treats]
@@ -368,7 +382,7 @@ def test_stochatreat_within_strata_no_probs(n_treats, block_cols, df):
 )
 def test_stochatreat_within_strata_probs(probs, block_cols, df):
     """
-    Test that within strata treatment assignment proportions are only as far from the required 
+    Tests that within strata treatment assignment proportions are only as far from the required 
     proportions as misfit assignment randomization allows with unequal treatment assignment probabilities
     """
     lcm_prob_denominators = get_lcm_prob_denominators(probs)
@@ -388,7 +402,7 @@ def test_stochatreat_within_strata_probs(probs, block_cols, df):
 @pytest.mark.parametrize("probs", standard_probs)
 def test_stochatreat_within_strata_no_misfits(probs):
     """
-    Test that within strata treatment assignment proportions are exactly equal to the required 
+    Tests that within strata treatment assignment proportions are exactly equal to the required 
     proportions when strata are such that there are no misfits
     """
     N = 10_000
