@@ -149,11 +149,9 @@ def treatments_dict():
 
     treatments_dict = {
         "data": data,
-        "block_cols": ["block"],
         "idx_col": idx_col,
         "size": size,
         "treatments": treatments,
-        "n_treatments": treats,
     }
 
     return treatments_dict
@@ -221,19 +219,86 @@ def test_stochatreat_output_no_null_treats(treatments_dict):
     assert treatments_df["treat"].isnull().sum() == 0, asrtmsg
 
 
-@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
-def test_stochatreat_output_index_content_unchanged(treatments_dict, misfit_strategy):
-    """Tests that the functions's output's index column matches the input index column"""
-    data_with_random_index = treatments_dict["data"]
-    data_with_random_index = data_with_random_index.set_index(
-        pd.Index(np.random.choice(300, 100, replace=False))
+@pytest.fixture
+def treatments_dict_rand_index():
+    """fixture of stochatreat() output to test output format"""
+    treats = 2
+    data = pd.DataFrame(
+        data={"id": np.random.permutation(100), "block": [0] * 40 + [1] * 30 + [2] * 30}
     )
+    data = data.set_index( pd.Index(np.random.choice(300, 100, replace=False)) )
+    idx_col = "id"
+
+    treatments = stochatreat(
+        data=data,
+        block_cols=["block"],
+        treats=treats,
+        idx_col=idx_col,
+        random_state=42,
+    )
+
+    treatments_dict = {
+        "data": data,
+        "block_cols": ["block"],
+        "idx_col": idx_col,
+        "treatments": treatments,
+        "n_treatments": treats,
+    }
+
+    return treatments_dict
+
+standard_probs = [[0.1, 0.9], 
+                  [1/3, 2/3],
+                  [0.5, 0.5],
+                  [2/3, 1/3],
+                  [0.9, 0.1]]
+
+
+@pytest.mark.parametrize("probs", standard_probs)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_output_index_content_unchanged(
+    treatments_dict_rand_index, probs, misfit_strategy
+):
+    """Tests that the functions's output's index column matches the input index column"""
+    data_with_random_index = treatments_dict_rand_index["data"]
+
     treatments = stochatreat(
         data=data_with_random_index,
-        block_cols= treatments_dict["block_cols"],
-        treats=treatments_dict["n_treatments"],
-        idx_col=treatments_dict["idx_col"],
+        block_cols=["block"],
+        probs=probs,
+        treats=2,
+        idx_col=treatments_dict_rand_index["idx_col"],
         misfit_strategy=misfit_strategy,
     )
+
     asrtmsg = "The output and input indices do not have the same content"
     assert set(treatments.index) == set(data_with_random_index.index), asrtmsg
+
+
+@pytest.mark.parametrize("probs", standard_probs)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_output_index_and_idx_col_correspondence(
+    treatments_dict_rand_index, probs, misfit_strategy
+):
+    """Tests that the functions's output's index column matches the input index column"""
+    data_with_random_index = treatments_dict_rand_index["data"]
+    idx_col = treatments_dict_rand_index["idx_col"]
+
+    treatments = stochatreat(
+        data=data_with_random_index,
+        block_cols="block",
+        probs=probs,
+        treats=2,
+        idx_col=idx_col,
+        misfit_strategy=misfit_strategy,
+    )
+
+    # align the idx_col of each with the index of the input data
+    idx_cols = pd.concat(
+        [ data_with_random_index[[idx_col]], treatments[[idx_col]] ],
+        axis=1
+    )
+    idx_cols.columns = ["idx_col_data", "idx_col_treatment"]
+
+    asrtmsg = "The output index and idx_col correspondence has been perturbed"
+    assert (idx_cols["idx_col_data"].values == idx_cols["idx_col_treatment"].values).all(), asrtmsg
