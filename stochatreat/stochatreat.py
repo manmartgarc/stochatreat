@@ -10,6 +10,7 @@ Created on Thu Nov  8 14:34:47 2018
 ===============================================================================
 """
 from typing import List
+
 import pandas as pd
 import numpy as np
 
@@ -44,7 +45,7 @@ def stochatreat(data: pd.DataFrame,
     block_cols      :   The columns in 'data' that you want to stratify over.
     treats          :   The number of treatments you would like to
                         implement, including control.
-    probs           :   The assignment probabilities for each of the treatments.
+    probs           :   The assignment probabilities for each of the treatments
     random_state    :   The seed for the rng instance.
     idx_col         :   The column name that indicates the ids for your data.
     size            :   The size of the sample if you would like to sample
@@ -53,9 +54,10 @@ def stochatreat(data: pd.DataFrame,
                         'stratum' or 'global'.
                         If 'stratum', will assign misfits randomly and
                         independently within each stratum using probs.
-                        If 'global', will group all misfits into one stratum and
-                        do a full assignment procedure in this new stratum with
-                        local random assignments of the misfits in this stratum
+                        If 'global', will group all misfits into one stratum
+                        and do a full assignment procedure in this new stratum
+                        with local random assignments of the misfits in
+                        this stratum.
 
     Returns
     -------
@@ -128,7 +130,8 @@ def stochatreat(data: pd.DataFrame,
         block_cols = [block_cols]
 
     if misfit_strategy not in ('stratum', 'global'):
-        raise ValueError("misfit_strategy must be one of 'stratum' or 'global'")
+        raise ValueError("misfit_strategy must be one of "
+                         "'stratum' or 'global'")
 
     # sort data
     data = data.sort_values(by=idx_col)
@@ -169,11 +172,12 @@ def stochatreat(data: pd.DataFrame,
 
     # 1. determine how to divide cleanly as much as possible
 
-    # convert all probs to fractions and get the lowest common multiple of their
-    # denominators
+    # convert all probs to fractions and get the lowest common
+    # multiple of their denominators
     lcm_prob_denominators = get_lcm_prob_denominators(probs)
 
-    # produce the assignment mask that we will use to achieve perfect proportions
+    # produce the assignment mask that we will use to achieve perfect
+    # proportions
     treat_mask = np.repeat(ts, (lcm_prob_denominators*probs).astype(int))
 
     # =========================================================================
@@ -203,7 +207,8 @@ def stochatreat(data: pd.DataFrame,
 
     if misfit_strategy == "global":
         if 'misfit_block' in blocks:
-            raise ValueError("There is already a block called 'misfit_block' in the data.")
+            raise ValueError("There is already a block called "
+                             "'misfit_block' in the data.")
 
         # throw all misfits into a single block, then append to the others
         global_misfits = pd.concat(global_misfits)
