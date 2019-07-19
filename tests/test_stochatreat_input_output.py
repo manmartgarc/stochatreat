@@ -7,7 +7,9 @@ from stochatreat import stochatreat
 
 @pytest.fixture
 def correct_params():
-    """A set of valid parameters that can be passed to stochatreat()"""
+    """
+    A set of valid parameters that can be passed to stochatreat()
+    """
     params = {
         "probs": [0.1, 0.9],
         "treat": 2,
@@ -35,8 +37,8 @@ def test_stochatreat_input_invalid_probs(correct_params):
 
 def test_stochatreat_input_more_treats_than_probs(correct_params):
     """
-    Tests that the function raises an error for treatments and probs
-    of different sizes
+    Tests that the function raises an error for treatments and probs of
+    different sizes
     """
     treat_too_large = 3
     with pytest.raises(Exception):
@@ -98,8 +100,8 @@ def test_stochatreat_input_invalid_size(correct_params):
 
 def test_stochatreat_input_idx_col_unique(correct_params):
     """
-    Tests that the function raises an error if the idx_col is not a
-    primary key of the data
+    Tests that the function raises an error if the idx_col is not a primary key
+    of the data
     """
     data_with_idx_col_with_duplicates = pd.DataFrame(
         data={"id": 1, "block": np.arange(100)}
@@ -115,7 +117,10 @@ def test_stochatreat_input_idx_col_unique(correct_params):
 
 
 def test_stochatreat_input_invalid_strategy(correct_params):
-    """Tests that the function raises an error if an invalid strategy string is passed"""
+    """
+    Tests that the function raises an error if an invalid strategy string is
+    passed
+    """
     unknown_strategy = "unknown"
     with pytest.raises(ValueError):
         stochatreat(
@@ -158,29 +163,39 @@ def treatments_dict():
 
 
 def test_stochatreat_output_type(treatments_dict):
-    """Tests that the function's output is a pd DataFrame"""
+    """
+    Tests that the function's output is a pd DataFrame
+    """
     treatments_df = treatments_dict["treatments"]
-    asrtmsg = "The output is not a DataFrame"
-    assert isinstance(treatments_df, pd.DataFrame), asrtmsg
+    assert_msg = "The output is not a DataFrame"
+    assert isinstance(treatments_df, pd.DataFrame), assert_msg
 
 
 def test_stochatreat_output_treat_col(treatments_dict):
-    """Tests that the function's output contains the `treat` column"""
+    """
+    Tests that the function's output contains the `treat` column
+    """
     treatments_df = treatments_dict["treatments"]
-    assert "treat" in treatments_df.columns, "Treatment column is missing"
+    assert_msg = "Treatment column is missing"
+    assert "treat" in treatments_df.columns, assert_msg
 
 
 def test_stochatreat_output_treat_col_dtype(treatments_dict):
-    """Tests that the function's output's 'treat` column is an int column"""
+    """
+    Tests that the function's output's 'treat` column is an int column
+    """
     treatments_df = treatments_dict["treatments"]
-    asrtmsg = "Treatment column is missing"
-    assert treatments_df["treat"].dtype == np.int64, asrtmsg
+    assert_msg= "Treatment column is missing"
+    assert treatments_df["treat"].dtype == np.int64, assert_msg
 
 
 def test_stochatreat_output_block_id_col(treatments_dict):
-    """Tests that the function's output contains the `block_id`'"""
+    """
+    Tests that the function's output contains the `block_id`
+    """
     treatments_df = treatments_dict["treatments"]
-    assert "block_id" in treatments_df.columns, "Block_id column is missing"
+    assert_msg = "Block_id column is missing"
+    assert "block_id" in treatments_df.columns, assert_msg
 
 
 def test_stochatreat_output_block_id_col_dtype(treatments_dict):
@@ -188,32 +203,129 @@ def test_stochatreat_output_block_id_col_dtype(treatments_dict):
     Tests that the function's output's 'block_id` column is an int column
     """
     treatments_df = treatments_dict["treatments"]
-    asrtmsg = "Block_id column is missing"
-    assert treatments_df["block_id"].dtype == np.int64, asrtmsg
+    assert_msg = "Block_id column is missing"
+    assert treatments_df["block_id"].dtype == np.int64, assert_msg
 
 
 def test_stochatreat_output_idx_col(treatments_dict):
     """
-    Tests that the function's output's 'idx_col` column is the same type
-    as the input'
+    Tests that the function's output's 'idx_col` column is the same type as the
+    input's
     """
     treatments_df = treatments_dict["treatments"]
     data = treatments_dict["data"]
     idx_col = treatments_dict["idx_col"]
-    asrtmsg = "Index column is missing"
-    assert treatments_df[idx_col].dtype == data[idx_col].dtype, asrtmsg
+    assert_msg = "Index column is missing"
+    assert treatments_df[idx_col].dtype == data[idx_col].dtype, assert_msg
 
 
 def test_stochatreat_output_size(treatments_dict):
-    """Tests that the function's output is of the right length"""
+    """
+    Tests that the function's output is of the right length
+    """
     treatments_df = treatments_dict["treatments"]
     size = treatments_dict["size"]
-    asrtmsg = "The size of the output does not match the sampled size"
-    assert len(treatments_df) == size, asrtmsg
+    assert_msg = "The size of the output does not match the sampled size"
+    assert len(treatments_df) == size, assert_msg
 
 
 def test_stochatreat_output_no_null_treats(treatments_dict):
-    """Tests that the function's output treatments are all non null'"""
+    """
+    Tests that the function's output treatments are all non null
+    """
     treatments_df = treatments_dict["treatments"]
-    asrtmsg = "There are null assignments"
-    assert treatments_df["treat"].isnull().sum() == 0, asrtmsg
+    assert_msg = "There are null assignments"
+    assert treatments_df["treat"].isnull().sum() == 0, assert_msg
+
+
+@pytest.fixture
+def treatments_dict_rand_index():
+    """fixture of stochatreat() output to test output format"""
+    treats = 2
+    data = pd.DataFrame(
+        data={
+            "id": np.random.permutation(100), 
+            "block": [0] * 40 + [1] * 30 + [2] * 30
+        }
+    )
+    data = data.set_index( 
+        pd.Index(np.random.choice(300, 100, replace=False)) 
+    )
+    idx_col = "id"
+
+    treatments = stochatreat(
+        data=data,
+        block_cols=["block"],
+        treats=treats,
+        idx_col=idx_col,
+        random_state=42,
+    )
+
+    treatments_dict = {
+        "data": data,
+        "block_cols": ["block"],
+        "idx_col": idx_col,
+        "treatments": treatments,
+        "n_treatments": treats,
+    }
+
+    return treatments_dict
+
+standard_probs = [[0.1, 0.9], 
+                  [1/3, 2/3],
+                  [0.5, 0.5],
+                  [2/3, 1/3],
+                  [0.9, 0.1]]
+
+
+@pytest.mark.parametrize("probs", standard_probs)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_output_index_content_unchanged(
+    treatments_dict_rand_index, probs, misfit_strategy
+):
+    """
+    Tests that the functions's output's index column matches the input index
+    column
+    """
+    data_with_rand_index = treatments_dict_rand_index["data"]
+
+    treatments = stochatreat(
+        data=data_with_rand_index,
+        block_cols=["block"],
+        probs=probs,
+        treats=2,
+        idx_col=treatments_dict_rand_index["idx_col"],
+        misfit_strategy=misfit_strategy,
+    )
+
+    assert_msg = "The output and input indices do not have the same content"
+    assert set(treatments.index) == set(data_with_rand_index.index), assert_msg
+
+
+@pytest.mark.parametrize("probs", standard_probs)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_output_index_and_idx_col_correspondence(
+    treatments_dict_rand_index, probs, misfit_strategy
+):
+    """
+    Tests that the functions's output's index column matches the input index
+    column
+    """
+    data_with_rand_index = treatments_dict_rand_index["data"]
+    idx_col = treatments_dict_rand_index["idx_col"]
+
+    treatments = stochatreat(
+        data=data_with_rand_index,
+        block_cols="block",
+        probs=probs,
+        treats=2,
+        idx_col=idx_col,
+        misfit_strategy=misfit_strategy,
+    )
+
+    data_with_rand_index = data_with_rand_index.sort_index()
+    treatments = treatments.sort_index()
+
+    pd.testing.assert_series_equal(
+        data_with_rand_index[idx_col], treatments[idx_col]
+    )
