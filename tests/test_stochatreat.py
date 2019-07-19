@@ -1,13 +1,12 @@
 import pytest
 
-from fractions import Fraction
-from functools import reduce
 from math import gcd
 
 import numpy as np
 import pandas as pd
 
 from stochatreat import stochatreat
+from stochatreat import get_lcm_prob_denominators
 
 
 @pytest.fixture
@@ -252,7 +251,7 @@ def df(request):
                                         ["block1", "block2"]])
 def test_stochatreat_no_probs(n_treats, block_cols, df):
     """
-    Tests that overall treatment assignment proportions across all strata are as intended 
+    Tests that overall treatment assignment proportions across all strata are as intended
     with equal treatment assignment probabilities
     """
     treats = stochatreat(
@@ -290,14 +289,14 @@ def test_stochatreat_probs(probs, block_cols, df):
     treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
-            treatment_shares, np.array(probs), decimal=2
-            )
+        treatment_shares, np.array(probs), decimal=2
+    )
 
 
 @pytest.mark.parametrize("probs", [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]])
 def test_stochatreat_no_misfits(probs):
     """
-    Tests that overall treatment assignment proportions across all strata are as intended 
+    Tests that overall treatment assignment proportions across all strata are as intended
     when strata are such that there are no misfits
     """
     N = 10_000
@@ -320,8 +319,8 @@ def test_stochatreat_no_misfits(probs):
     treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
-            treatment_shares, np.array(probs), decimal=2
-            )
+        treatment_shares, np.array(probs), decimal=2
+    )
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -330,7 +329,7 @@ def test_stochatreat_only_misfits(probs):
     Tests that overall treatment assignment proportions across all strata are as intended
     when strata are such that there are only misfits
     """
-    N = 1_000
+    N = 1_000_000
     df = pd.DataFrame(
         data={
             "id": np.arange(N),
@@ -348,34 +347,25 @@ def test_stochatreat_only_misfits(probs):
     treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
-            treatment_shares, np.array(probs), decimal=2
-            )
-
-
-def lcm(denominators):
-    """This helper function computes the Lowest Common Multiple of a list of integers"""
-    return reduce(lambda a, b: a * b // gcd(a, b), denominators)
-
-
-def get_lcm_prob_denominators(probs):
-    """This helper function computes the LCM of the denominators of the probabilities"""
-    prob_denominators = [
-        Fraction(prob).limit_denominator().denominator for prob in probs
-    ]
-    lcm_prob_denominators = lcm(prob_denominators)
-    return lcm_prob_denominators
-
+        treatment_shares, np.array(probs), decimal=2
+    )
 
 def get_within_strata_counts(treats):
-    """This helper function computes the treatment shares within strata"""
-    treatment_counts = treats.groupby(["block_id", "treat"]).\
-        count().rename(columns={"id": "treat_counts"}).\
-        reset_index()
+    """Helper function to compute the treatment shares within strata"""
+    treatment_counts = (treats
+        .groupby(["block_id", "treat"])[["id"]]
+        .count()
+        .rename(columns={"id": "treat_count"})
+        .reset_index()
+    )
 
-    block_counts = treats.groupby(["block_id"])[["id"]].\
-        count().rename(columns={"id": "block_counts"}).\
-        reset_index()
-    
+    block_counts = (treats
+        .groupby(["block_id"])[["id"]]
+        .count()
+        .rename(columns={"id": "block_count"})
+        .reset_index()
+    )
+
     counts = pd.merge(
         treatment_counts, block_counts, on="block_id", how="left"
     )
@@ -383,9 +373,9 @@ def get_within_strata_counts(treats):
     return counts
 
 
-def compute_counts_diff(treats, probs):
+def compute_count_diff(treats, probs):
     """
-    This helper function computes the treatment counts within strata and lines them up 
+    Helper function to compute the treatment counts within strata and line them up
     with required counts, and returns the different treatment counts aggregated at the block level
     as well as the dataframe with the different counts used in some tests
     """
@@ -395,11 +385,11 @@ def compute_counts_diff(treats, probs):
     comparison_df = pd.merge(
         counts, required_props, on="treat", how="left"
     )
-    comparison_df["desired_counts"] = comparison_df["block_counts"] * comparison_df["required_prop"]
-    
-    counts_diff = (counts["treat_counts"] - comparison_df["desired_counts"]).abs()
+    comparison_df["desired_counts"] = comparison_df["block_count"] * comparison_df["required_prop"]
 
-    return counts_diff, comparison_df
+    comparison_df["count_diff"] = (comparison_df["treat_count"] - comparison_df["desired_counts"]).abs()
+
+    return comparison_df
 
 
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
@@ -408,17 +398,18 @@ def compute_counts_diff(treats, probs):
 )
 def test_stochatreat_within_strata_no_probs(n_treats, block_cols, df):
     """
-    Tests that within strata treatment assignment proportions are only as far from the required 
-    proportions as misfit assignment randomization allows with equal treatment assignment probabilities
+    Tests that within strata treatment assignment counts are only as far from the required
+    counts as misfit assignment randomization allows with equal treatment assignment probabilities
     """
     probs = n_treats * [1 / n_treats]
     lcm_prob_denominators = n_treats
     treats = stochatreat(
         data=df, block_cols=block_cols, treats=n_treats, idx_col="id", random_state=42
     )
-    counts_diff, _ = compute_counts_diff(treats, probs)
+    comparison_df = compute_count_diff(treats, probs)
 
-    assert (counts_diff < lcm_prob_denominators).all(), "The counts differences exceed the bound that misfit allocation should not exceed"
+    assert_msg = "The counts differences exceed the bound that misfit allocation should not exceed"
+    assert (comparison_df["count_diff"] < lcm_prob_denominators).all(), assert_msg
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -427,8 +418,8 @@ def test_stochatreat_within_strata_no_probs(n_treats, block_cols, df):
 )
 def test_stochatreat_within_strata_probs(probs, block_cols, df):
     """
-    Tests that within strata treatment assignment proportions are only as far from the required 
-    proportions as misfit assignment randomization allows with unequal treatment assignment probabilities
+    Tests that within strata treatment assignment counts are only as far from the required
+    counts as misfit assignment randomization allows with unequal treatment assignment probabilities
     """
     lcm_prob_denominators = get_lcm_prob_denominators(probs)
     treats = stochatreat(
@@ -439,18 +430,19 @@ def test_stochatreat_within_strata_probs(probs, block_cols, df):
         probs=probs,
         random_state=42,
     )
-    counts_diff, _ = compute_counts_diff(treats, probs)
+    comparison_df = compute_count_diff(treats, probs)
 
-    assert (counts_diff < lcm_prob_denominators).all(), "The counts differences exceed the bound that misfit allocation should not exceed"
+    assert_msg = "The counts differences exceed the bound that misfit allocation should not exceed"
+    assert (comparison_df["count_diff"] < lcm_prob_denominators).all(), assert_msg
 
 
 @pytest.mark.parametrize("probs", standard_probs)
 def test_stochatreat_within_strata_no_misfits(probs):
     """
-    Tests that within strata treatment assignment proportions are exactly equal to the required 
-    proportions when strata are such that there are no misfits
+    Tests that within strata treatment assignment counts are exactly equal to the required
+    counts when strata are such that there are no misfits
     """
-    N = 10_000
+    N = 1_000
     blocksize = 10
     df = pd.DataFrame(
         data={
@@ -469,9 +461,10 @@ def test_stochatreat_within_strata_no_misfits(probs):
         probs=probs,
         random_state=42,
     )
-    counts_diff, _ = compute_counts_diff(treats, probs)
+    comparison_df = compute_count_diff(treats, probs)
 
-    assert (counts_diff == 0).all(), "The required proportions are not reached without misfits"
+    assert_msg = "The required proportions are not reached without misfits"
+    assert (comparison_df["count_diff"] == 0).all(), assert_msg
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -488,11 +481,11 @@ def test_stochatreat_global_strategy(probs, block_cols, df):
         random_state=42,
         misfit_strategy="global"
     )
-    counts_diff, comparison_df = compute_counts_diff(treats, probs)
-    comparison_df["counts_diff"] = counts_diff
-    block_counts_diff = comparison_df.groupby(["block_id"]).sum()["counts_diff"]
+    comparison_df = compute_count_diff(treats, probs)
 
-    assert (block_counts_diff != 0).sum() <= 1, "There is more than one block with misfits"
+    block_count_diff = comparison_df.groupby(["block_id"])["count_diff"].sum()
+
+    assert (block_count_diff != 0).sum() <= 1, "There is more than one block with misfits"
 
 
 @pytest.mark.parametrize(

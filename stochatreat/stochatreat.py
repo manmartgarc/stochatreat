@@ -10,11 +10,10 @@ Created on Thu Nov  8 14:34:47 2018
 ===============================================================================
 """
 from typing import List
-from fractions import Fraction
-from functools import reduce
-from math import gcd
 import pandas as pd
 import numpy as np
+
+from .utils import get_lcm_prob_denominators
 
 # %%===========================================================================
 # Main
@@ -172,10 +171,7 @@ def stochatreat(data: pd.DataFrame,
 
     # convert all probs to fractions and get the lowest common multiple of their
     # denominators
-    prob_denominators = [
-        Fraction(prob).limit_denominator().denominator for prob in probs
-    ]
-    lcm_prob_denominators = lcm(prob_denominators)
+    lcm_prob_denominators = get_lcm_prob_denominators(probs)
 
     # produce the assignment mask that we will use to achieve perfect proportions
     treat_mask = np.repeat(ts, (lcm_prob_denominators*probs).astype(int))
@@ -254,9 +250,3 @@ def stochatreat(data: pd.DataFrame,
     assert len(ids_treats) == len(data)
     assert ids_treats['treat'].isnull().sum() == 0
     return ids_treats
-
-
-def lcm(l):
-    """returns the least common multiple of a list of integers
-    """
-    return reduce(lambda a,b: a*b // gcd(a,b), l)
