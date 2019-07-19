@@ -220,10 +220,13 @@ def test_stochatreat_output_no_null_treats(treatments_dict):
 
 
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
-def test_stochatreat_output_idx_col_unchanged(misfit_strategy):
+def test_stochatreat_output_index_content_unchanged(misfit_strategy):
     """Tests that the functions's output's index column matches the input index column"""
     data_with_random_index = pd.DataFrame(
-        {"id": np.random.permutation(100), "block": [0] * 40 + [1] * 30 + [2] * 30}
+        {"id": range(100), "block": [0] * 40 + [1] * 30 + [2] * 30}
+    )
+    data_with_random_index = data_with_random_index.set_index(
+        pd.Index(np.random.choice(300, 100, replace=False))
     )
     treatments = stochatreat(
         data=data_with_random_index,
@@ -232,5 +235,5 @@ def test_stochatreat_output_idx_col_unchanged(misfit_strategy):
         idx_col="id",
         misfit_strategy=misfit_strategy,
     )
-    asrtmsg = "The output and input index columns do not align"
-    assert (treatments["id"].values == data_with_random_index["id"].values).all(), asrtmsg
+    asrtmsg = "The output and input indices do not have the same content"
+    assert set(treatments.index) == set(data_with_random_index.index), asrtmsg
