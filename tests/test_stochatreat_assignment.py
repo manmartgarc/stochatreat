@@ -76,6 +76,7 @@ def test_stochatreat_no_probs(n_treats, block_cols, df):
     """
     Tests that overall treatment assignment proportions across all strata are as intended
     with equal treatment assignment probabilities
+    -- relies on the Law of Large Numbers, not deterministic
     """
     treats = stochatreat(
         data=df,
@@ -98,6 +99,7 @@ def test_stochatreat_probs(probs, block_cols, df):
     """
     Tests that overall treatment assignment proportions across all strata are as intended
     with unequal treatment assignment probabilities
+    -- relies on the Law of Large Numbers, not deterministic
     """
     treats = stochatreat(
         data=df,
@@ -141,6 +143,7 @@ def test_stochatreat_only_misfits(probs):
     Tests that overall treatment assignment proportions across all strata are as intended
     when strata are such that there are only misfits and the number of units is
     sufficiently large
+    -- relies on the Law of Large Numbers, not deterministic
     """
     N = 10_000
     df = pd.DataFrame(
