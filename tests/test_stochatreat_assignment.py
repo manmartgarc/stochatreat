@@ -301,10 +301,11 @@ def test_stochatreat_global_strategy(probs, block_cols, df):
     assert (block_count_diff != 0).sum() <= 1, assert_msg
 
 
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 @pytest.mark.parametrize(
     "block_cols", standard_block_cols
     )
-def test_stochatreat_block_ids(df, block_cols):
+def test_stochatreat_block_ids(df, misfit_strategy, block_cols):
     """Tests that the function returns the right number of block ids"""
     treats = stochatreat(
         data=df,
@@ -312,10 +313,15 @@ def test_stochatreat_block_ids(df, block_cols):
         treats=2,
         idx_col="id",
         random_state=42,
+        misfit_strategy=misfit_strategy,
     )
 
     n_unique_blocks = len(df[block_cols].drop_duplicates())
 
     n_unique_block_ids = len(treats["block_id"].drop_duplicates())
 
-    np.testing.assert_equal(n_unique_block_ids, n_unique_blocks)
+    if misfit_strategy == "global":
+        # depending on whether there are misfits
+        assert (n_unique_block_ids == n_unique_blocks) | (n_unique_block_ids - 1 == n_unique_blocks)
+    else:
+        assert n_unique_block_ids == n_unique_blocks
