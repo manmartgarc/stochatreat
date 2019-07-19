@@ -217,3 +217,20 @@ def test_stochatreat_output_no_null_treats(treatments_dict):
     treatments_df = treatments_dict["treatments"]
     asrtmsg = "There are null assignments"
     assert treatments_df["treat"].isnull().sum() == 0, asrtmsg
+
+
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_output_idx_col_unchanged(misfit_strategy):
+    """Tests that the functions's output's index column matches the input index column"""
+    data_with_random_index = pd.DataFrame(
+        {"id": np.random.permutation(100), "block": [0] * 40 + [1] * 30 + [2] * 30}
+    )
+    treatments = stochatreat(
+        data=data_with_random_index,
+        block_cols=["block"],
+        treats=2,
+        idx_col="id",
+        misfit_strategy=misfit_strategy,
+    )
+    asrtmsg = "The output and input index columns do not align"
+    assert (treatments["id"].values == data_with_random_index["id"].values).all(), asrtmsg
