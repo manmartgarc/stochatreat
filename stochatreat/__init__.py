@@ -12,3 +12,4 @@ __version__ = '0.0.5'
 __author__ = 'Manuel Martinez'
 
 from .stochatreat import stochatreat
+from .utils import *
