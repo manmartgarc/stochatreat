@@ -149,9 +149,11 @@ def treatments_dict():
 
     treatments_dict = {
         "data": data,
+        "block_cols": ["block"],
         "idx_col": idx_col,
         "size": size,
         "treatments": treatments,
+        "n_treatments": treats,
     }
 
     return treatments_dict
@@ -220,19 +222,17 @@ def test_stochatreat_output_no_null_treats(treatments_dict):
 
 
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
-def test_stochatreat_output_index_content_unchanged(misfit_strategy):
+def test_stochatreat_output_index_content_unchanged(treatments_dict, misfit_strategy):
     """Tests that the functions's output's index column matches the input index column"""
-    data_with_random_index = pd.DataFrame(
-        {"id": range(100), "block": [0] * 40 + [1] * 30 + [2] * 30}
-    )
+    data_with_random_index = treatments_dict["data"]
     data_with_random_index = data_with_random_index.set_index(
         pd.Index(np.random.choice(300, 100, replace=False))
     )
     treatments = stochatreat(
         data=data_with_random_index,
-        block_cols=["block"],
-        treats=2,
-        idx_col="id",
+        block_cols= treatments_dict["block_cols"],
+        treats=treatments_dict["n_treatments"],
+        idx_col=treatments_dict["idx_col"],
         misfit_strategy=misfit_strategy,
     )
     asrtmsg = "The output and input indices do not have the same content"
