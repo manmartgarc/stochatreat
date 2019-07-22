@@ -179,7 +179,7 @@ def stochatreat(data: pd.DataFrame,
     # re-arrange blocks
     # =========================================================================
 
-    if misfit_strategy == "global":
+    if misfit_strategy == 'global':
         # separate the global misfits
         misfit_data = data.groupby('block').apply(
             lambda x: x.sample(
@@ -187,7 +187,7 @@ def stochatreat(data: pd.DataFrame,
                 replace=False,
                 random_state=random_state
             )
-        ).droplevel(level="block")
+        ).droplevel(level='block')
         good_form_data = data.drop(index=misfit_data.index)
 
         # assign the misfits their own block and concatenate
@@ -208,7 +208,7 @@ def stochatreat(data: pd.DataFrame,
     data.loc[:, 'block'] = data['block'].astype(str)
 
     # add fake rows for each group so the total number can be divided by num_treatments
-    fake = pd.DataFrame({"fake": data.groupby('block').size()}).reset_index()  
+    fake = pd.DataFrame({'fake': data.groupby('block').size()}).reset_index()  
     fake.loc[:, 'fake'] = (
         (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % lcm_prob_denominators
     )
@@ -227,14 +227,14 @@ def stochatreat(data: pd.DataFrame,
     )
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
-    ordered["treat"] = treat_mask[permutations].flatten(order='C')
-    ordered = ordered[~ordered["fake"]].drop("fake", 1)
+    ordered['treat'] = treat_mask[permutations].flatten(order='C')
+    ordered = ordered[~ordered['fake']].drop('fake', 1)
 
-    data.loc[:, 'treat'] = ordered["treat"]
+    data.loc[:, 'treat'] = ordered['treat']
 
     # add unique integer ids for the blocks
-    data["block_id"] = data.groupby(["block"]).ngroup()
-    data = data.drop(columns=["block"])
+    data['block_id'] = data.groupby(['block']).ngroup()
+    data = data.drop(columns=['block'])
 
     data['treat'] = data['treat'].astype(np.int64)
 
