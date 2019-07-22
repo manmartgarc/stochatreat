@@ -210,7 +210,7 @@ def stochatreat(data: pd.DataFrame,
     # add fake rows for each group so the total number can be divided by num_treatments
     fake = pd.DataFrame({"fake": data.groupby('block').size()}).reset_index()  
     fake.loc[:, 'fake'] = (
-        (len(treat_mask) - fake['fake'] % len(treat_mask)) % len(treat_mask)
+        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % lcm_prob_denominators
     )
     fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0), columns=fake.columns)
 
@@ -222,7 +222,7 @@ def stochatreat(data: pd.DataFrame,
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
     permutations = np.argsort(
-        np.random.rand(len(ordered) // len(treat_mask), len(treat_mask)),
+        np.random.rand(len(ordered) // lcm_prob_denominators, lcm_prob_denominators),
         axis=1
     )
     # lookup treatment name for permutations. This works because we flatten
