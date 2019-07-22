@@ -10,6 +10,7 @@ Created on Thu Nov  8 14:34:47 2018
 ===============================================================================
 """
 from typing import List
+
 import pandas as pd
 import numpy as np
 
