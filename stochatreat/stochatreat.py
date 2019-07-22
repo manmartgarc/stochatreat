@@ -228,7 +228,7 @@ def stochatreat(data: pd.DataFrame,
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
     ordered['treat'] = treat_mask[permutations].flatten(order='C')
-    ordered = ordered[~ordered['fake']].drop('fake', 1)
+    ordered = ordered[~ordered['fake']].drop(columns=['fake'])
 
     data.loc[:, 'treat'] = ordered['treat']
 
