@@ -80,7 +80,6 @@ def stochatreat(data: pd.DataFrame,
                                  random_state=42)
         >>> data = data.merge(treats, how='left', on='myid')
     """
-    R = np.random.RandomState(random_state)
 
     # =========================================================================
     # do checks
@@ -180,73 +179,65 @@ def stochatreat(data: pd.DataFrame,
     # re-arrange blocks
     # =========================================================================
 
-    slizes = []
-    global_misfits = []
-
-    # slice the data into blocks
-    for i, block in enumerate(blocks):
-        # slize data by block
-        slize = data.loc[data['block'] == block].copy()
-
-        # if using the `global` strategy, throw misfits in their own block
-        if misfit_strategy == "global":
-            # get the block size
-            block_size = slize.shape[0]
-            n_misfit = block_size % lcm_prob_denominators
-            # partition into misfits / non-misfits
-            misfit_data = slize.sample(n_misfit)
-            slize = slize.drop(index=misfit_data.index)
-
-            global_misfits.append(misfit_data)
-
-        slizes.append(slize)
-
     if misfit_strategy == "global":
+        # separate the global misfits
+        misfit_data = data.groupby('block').apply(
+            lambda x: x.sample(
+                n=(x.shape[0] % lcm_prob_denominators),
+                replace=False,
+                random_state=random_state
+            )
+        ).droplevel(level="block")
+        good_form_data = data.drop(index=misfit_data.index)
+
+        # assign the misfits their own block and concatenate
         if 'misfit_block' in blocks:
             raise ValueError("There is already a block called 'misfit_block' in the data.")
-
-        # throw all misfits into a single block, then append to the others
-        global_misfits = pd.concat(global_misfits)
-        global_misfits['block'] = 'misfit_block'
-
-        slizes.append(global_misfits)
+        misfit_data.loc[:, 'block'] = 'misfit_block'
+        data = pd.concat([good_form_data, misfit_data])
 
     # =========================================================================
     # assign treatments
     # =========================================================================
-    for slize in slizes:
-        # set up first-round treatment ids in the desired proportions
-        block_size = slize.shape[0]
-        n_repeat_mask = block_size // lcm_prob_denominators
-        block_treatments = np.repeat(treat_mask, n_repeat_mask)
+    
+    # sort by strata first, and assign a long list of permuted treat_mask
+    # to deal with misfits, in this case we can add fake rows to make it so everything
+    # is divisible and toss them later -> no costly apply inside groups
 
-        # add misfit treatment ids
-        n_misfit = block_size % lcm_prob_denominators
+    # to make sure we have no problems when sorting 
+    data.loc[:, 'block'] = data['block'].astype(str)
 
-        if n_misfit > 0:
-            misfit_treatments = R.choice(
-                range(treats),
-                size=n_misfit,
-                p=probs
-            )
-            block_treatments = np.r_[block_treatments, misfit_treatments]
+    # add fake rows for each group so the total number can be divided by num_treatments
+    fake = pd.DataFrame({"fake": data.groupby('block').size()}).reset_index()  
+    fake.loc[:, 'fake'] = (
+        (len(treat_mask) - fake['fake'] % len(treat_mask)) % len(treat_mask)
+    )
+    fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0), columns=fake.columns)
 
-        # shuffle, then assign the treatment ids to the block
-        np.random.shuffle(block_treatments)
-        slize['treat'] = block_treatments
+    data.loc[:, 'fake'] = False
+    fake_rep.loc[:, 'fake'] = True
 
-    # concatenate all slizes
-    ids_treats = pd.concat(slizes, sort=False)
+    ordered = pd.concat([data, fake_rep], sort=False).sort_values(['block'])
 
-    # make sure the order is the same as the original data
-    ids_treats = ids_treats.sort_values(by=idx_col)
+    # generate random permutations without loop by generating large number of
+    # random values and sorting row (meaning one permutation) wise
+    permutations = np.argsort(
+        np.random.rand(len(ordered) // len(treat_mask), len(treat_mask)),
+        axis=1
+    )
+    # lookup treatment name for permutations. This works because we flatten
+    # row-major style, i.e. one row after another.
+    ordered["treat"] = treat_mask[permutations].flatten(order='C')
+    ordered = ordered[~ordered["fake"]].drop("fake", 1)
+
+    data.loc[:, 'treat'] = ordered["treat"]
 
     # add unique integer ids for the blocks
-    ids_treats["block_id"] = ids_treats.groupby(["block"]).ngroup()
-    ids_treats = ids_treats.drop(columns=["block"])
+    data["block_id"] = data.groupby(["block"]).ngroup()
+    data = data.drop(columns=["block"])
 
-    ids_treats['treat'] = ids_treats['treat'].astype(np.int64)
+    data['treat'] = data['treat'].astype(np.int64)
 
-    assert len(ids_treats) == len(data)
-    assert ids_treats['treat'].isnull().sum() == 0
-    return ids_treats
+    assert data['treat'].isnull().sum() == 0
+    
+    return data
