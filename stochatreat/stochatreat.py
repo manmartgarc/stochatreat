@@ -156,7 +156,6 @@ def stochatreat(data: pd.DataFrame,
         data = data.groupby('stratum_id').apply(
             lambda x: x.sample(
                 n=reduced_sizes[x.name],
-                replace=False,
                 random_state=random_state
             )
         ).droplevel(level='stratum_id')
