@@ -192,79 +192,65 @@ def stochatreat(data: pd.DataFrame,
     # re-arrange strata
     # =========================================================================
 
-    data_strata = []
-    global_misfits = []
+    if misfit_strategy == 'global':
+        # separate the global misfits
+        misfit_data = data.groupby('stratum').apply(
+            lambda x: x.sample(
+                n=(x.shape[0] % lcm_prob_denominators),
+                replace=False,
+                random_state=random_state
+            )
+        ).droplevel(level='stratum')
+        good_form_data = data.drop(index=misfit_data.index)
 
-    # slice the data into strata
-    for i, stratum in enumerate(strata):
-        # slize data by stratum
-        data_stratum = data.loc[data['stratum'] == stratum].copy()
-
-        # if using the `global` strategy, throw misfits in their own stratum
-        if misfit_strategy == "global":
-            # get the block size
-            stratum_size = data_stratum.shape[0]
-            n_misfit = stratum_size % lcm_prob_denominators
-            # partition into misfits / non-misfits
-            misfit_data = data_stratum.sample(n_misfit)
-            data_stratum = data_stratum.drop(index=misfit_data.index)
-
-            global_misfits.append(misfit_data)
-
-        data_strata.append(data_stratum)
-
-    if misfit_strategy == "global":
+        # assign the misfits their own stratum and concatenate
         if 'misfit_stratum' in strata:
-            raise ValueError("""There is already a stratum called 
-                'misfit_stratum' in the data.""")
-
-        # throw all misfits into a single stratum, then append to the others
-        global_misfits = pd.concat(global_misfits)
-        global_misfits['stratum'] = 'misfit_stratum'
-
-        data_strata.append(global_misfits)
+            raise ValueError("There is already a stratum called 'misfit_stratum' in the data.")
+        misfit_data.loc[:, 'stratum'] = 'misfit_stratum'
+        data = pd.concat([good_form_data, misfit_data])
 
     # =========================================================================
     # assign treatments
     # =========================================================================
-    for data_stratum in data_strata:
-        # set up first-round treatment ids in the desired proportions
-        stratum_size = data_stratum.shape[0]
-        n_repeat_mask = stratum_size // lcm_prob_denominators
-        stratum_treatments = np.repeat(treat_mask, n_repeat_mask)
+    
+    # sort by strata first, and assign a long list of permuted treat_mask
+    # to deal with misfits, in this case we can add fake rows to make it so everything
+    # is divisible and toss them later -> no costly apply inside strata
 
-        # add misfit treatment ids
-        n_misfit = stratum_size % lcm_prob_denominators
+    # to make sure we have no problems when sorting 
+    data.loc[:, 'stratum'] = data['stratum'].astype(str)
 
-        if n_misfit > 0:
-            misfit_treatments = R.choice(
-                treatment_ids,
-                size=n_misfit,
-                p=probs
-            )
-            stratum_treatments = np.r_[stratum_treatments, misfit_treatments]
-
-        # shuffle, then assign the treatment ids to the stratum
-        np.random.shuffle(stratum_treatments)
-        data_stratum['treat'] = stratum_treatments
-
-    # concatenate all strata
-    data_with_treatments = pd.concat(data_strata, sort=False)
-
-    # make sure the order is the same as the original data
-    data_with_treatments = data_with_treatments.sort_values(by=idx_col)
-
-    # add unique integer ids for the blocks
-    data_with_treatments["stratum_id"] = (data_with_treatments
-        .groupby(["stratum"])
-        .ngroup()
+    # add fake rows for each stratum so the total number can be divided by num_treatments
+    fake = pd.DataFrame({'fake': data.groupby('stratum').size()}).reset_index()  
+    fake.loc[:, 'fake'] = (
+        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % lcm_prob_denominators
     )
-    data_with_treatments = data_with_treatments.drop(columns=["stratum"])
+    fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0), columns=fake.columns)
 
-    data_with_treatments['treat'] = (data_with_treatments['treat']
-        .astype(np.int64)
+    data.loc[:, 'fake'] = False
+    fake_rep.loc[:, 'fake'] = True
+
+    ordered = pd.concat([data, fake_rep], sort=False).sort_values(['stratum'])
+
+    # generate random permutations without loop by generating large number of
+    # random values and sorting row (meaning one permutation) wise
+    permutations = np.argsort(
+        R.rand(len(ordered) // lcm_prob_denominators, lcm_prob_denominators),
+        axis=1
     )
+    # lookup treatment name for permutations. This works because we flatten
+    # row-major style, i.e. one row after another.
+    ordered['treat'] = treat_mask[permutations].flatten(order='C')
+    ordered = ordered[~ordered['fake']].drop(columns=['fake'])
 
-    assert len(data_with_treatments) == len(data)
-    assert data_with_treatments['treat'].isnull().sum() == 0
-    return data_with_treatments
+    data.loc[:, 'treat'] = ordered['treat']
+
+    # add unique integer ids for the strata
+    data['stratum_id'] = data.groupby(['stratum']).ngroup()
+    data = data.drop(columns=['stratum'])
+
+    data['treat'] = data['treat'].astype(np.int64)
+
+    assert data['treat'].isnull().sum() == 0
+    
+    return data
