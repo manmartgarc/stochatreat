@@ -241,13 +241,13 @@ def stochatreat(data: pd.DataFrame,
     )
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
-    data['treat'] = treat_mask[permutations].flatten(order='C')
+    data.loc[:, 'treat'] = treat_mask[permutations].flatten(order='C')
     data = data[~data['fake']].drop(columns=['fake'])
 
     # re-assign type - as it might have changed with the addition of fake data
-    data[idx_col] = data[idx_col].astype(idx_col_type)
+    data.loc[:, idx_col] = data[idx_col].astype(idx_col_type)
     
-    data['treat'] = data['treat'].astype(np.int64)
+    data.loc[:, 'treat'] = data['treat'].astype(np.int64)
 
     assert data['treat'].isnull().sum() == 0
     
