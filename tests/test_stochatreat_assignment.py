@@ -335,6 +335,31 @@ def test_stochatreat_block_ids(df, misfit_strategy, stratum_cols):
 
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_random_state(df, stratum_cols, misfit_strategy):
+    """
+    Tests that the results are the same on two consecutive calls with the same
+    random state
+    """
+    random_state = 42
+    treats = []
+    for _ in range(2):
+        treatments_i = stochatreat(
+            data=df,
+            stratum_cols=stratum_cols,
+            treats=2,
+            idx_col="id",
+            random_state=random_state,
+            misfit_strategy=misfit_strategy,
+        )
+        treats.append(treatments_i)
+    
+    pd.testing.assert_series_equal(
+        treats[0]["treat"], treats[1]["treat"]
+    )
+
+    
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
     """
     Tests that the mapping between idx_col and the assignments is the same on
@@ -359,6 +384,9 @@ def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
     pd.testing.assert_series_equal(
         treats[0]["treat"], treats[1]["treat"]
     )
+
+
+
 
     
 
