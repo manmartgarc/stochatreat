@@ -210,21 +210,31 @@ def stochatreat(data: pd.DataFrame,
     # assign treatments
     # =========================================================================
     
-    # sort by strata first, and assign a long list of permuted treat_mask
-    # to deal with misfits, in this case we can add fake rows to make it so everything
-    # is divisible and toss them later -> no costly apply inside strata
+    # sort by strata first, and assign a long list of permuted treat_mask to
+    # deal with misfits, in this case we can add fake rows to make it so
+    # everything is divisible and toss them later -> no costly apply inside
+    # strata
 
-    # add fake rows for each stratum so the total number can be divided by num_treatments
-    fake = pd.DataFrame({'fake': data.groupby('stratum_id').size()}).reset_index()  
+    # add fake rows for each stratum so the total number can be divided by
+    # num_treatments
+    fake = pd.DataFrame(
+        {'fake': data.groupby('stratum_id').size()}
+    ).reset_index()  
     fake.loc[:, 'fake'] = (
-        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % lcm_prob_denominators
+        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % 
+            lcm_prob_denominators
     )
-    fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0), columns=fake.columns)
+    fake_rep = pd.DataFrame(
+        fake.values.repeat(fake['fake'], axis=0), 
+        columns=fake.columns
+    )
 
     data.loc[:, 'fake'] = False
     fake_rep.loc[:, 'fake'] = True
 
-    ordered = pd.concat([data, fake_rep], sort=False).sort_values(['stratum_id'])
+    ordered = (pd.concat([data, fake_rep], sort=False)
+        .sort_values(['stratum_id'])
+    )
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
