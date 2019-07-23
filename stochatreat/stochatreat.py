@@ -84,6 +84,7 @@ def stochatreat(data: pd.DataFrame,
                                  random_state=42)
         >>> data = data.merge(treats, how='left', on='myid')
     """
+    R = np.random.RandomState(random_state)
 
     # =========================================================================
     # do checks
@@ -234,7 +235,7 @@ def stochatreat(data: pd.DataFrame,
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
     permutations = np.argsort(
-        np.random.rand(len(ordered) // lcm_prob_denominators, lcm_prob_denominators),
+        R.rand(len(ordered) // lcm_prob_denominators, lcm_prob_denominators),
         axis=1
     )
     # lookup treatment name for permutations. This works because we flatten
