@@ -139,7 +139,6 @@ def stochatreat(data: pd.DataFrame,
 
     # combine block cells - by assigning stratum ids
     data['stratum_id'] = data.groupby(stratum_cols).ngroup()
-    strata = data['stratum_id'].unique()
 
     # keep only ids and concatenated strata
     data = data[[idx_col] + ['stratum_id']].copy()
@@ -152,20 +151,15 @@ def stochatreat(data: pd.DataFrame,
             .value_counts(normalize=True)
             .sort_index()
         )
-        reduced_sizes = (strata_fracs * size).round().astype(int).tolist()
+        reduced_sizes = (strata_fracs * size).round().astype(int)
         # draw sample
-        sample = []
-        for i, stratum in enumerate(strata):
-            stratum_sample = data[data['stratum_id'] == stratum].copy()
-            # draw sample using fractions
-            stratum_sample = stratum_sample.sample(
-                n=reduced_sizes[i],
+        data = data.groupby('stratum_id').apply(
+            lambda x: x.sample(
+                n=reduced_sizes[x.name],
                 replace=False,
                 random_state=random_state
             )
-            sample.append(stratum_sample)
-        # concatenate samples from each stratum
-        data = pd.concat(sample)
+        ).droplevel(level='stratum_id')
 
         assert sum(reduced_sizes) == len(data)
 
