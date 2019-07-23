@@ -115,12 +115,13 @@ def stochatreat(data: pd.DataFrame,
 
     # if idx_col parameter was not defined.
     if idx_col is None:
-        data = data.reset_index(drop=True)
+        data = data.rename_axis('index', axis='index').reset_index()
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
+
     # check for unique identifiers
-    elif data[idx_col].duplicated(keep=False).sum() > 0:
+    if data[idx_col].duplicated(keep=False).sum() > 0:
         raise ValueError('Values in idx_col are not unique.')
 
     # if size is larger than sample universe
@@ -203,21 +204,31 @@ def stochatreat(data: pd.DataFrame,
     # assign treatments
     # =========================================================================
     
-    # sort by strata first, and assign a long list of permuted treat_mask
-    # to deal with misfits, in this case we can add fake rows to make it so everything
-    # is divisible and toss them later -> no costly apply inside strata
+    # sort by strata first, and assign a long list of permuted treat_mask to
+    # deal with misfits, in this case we can add fake rows to make it so
+    # everything is divisible and toss them later -> no costly apply inside
+    # strata
 
-    # add fake rows for each stratum so the total number can be divided by num_treatments
-    fake = pd.DataFrame({'fake': data.groupby('stratum_id').size()}).reset_index()  
+    # add fake rows for each stratum so the total number can be divided by
+    # num_treatments
+    fake = pd.DataFrame(
+        {'fake': data.groupby('stratum_id').size()}
+    ).reset_index()  
     fake.loc[:, 'fake'] = (
-        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % lcm_prob_denominators
+        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % 
+            lcm_prob_denominators
     )
-    fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0), columns=fake.columns)
+    fake_rep = pd.DataFrame(
+        fake.values.repeat(fake['fake'], axis=0), 
+        columns=fake.columns
+    )
 
     data.loc[:, 'fake'] = False
     fake_rep.loc[:, 'fake'] = True
 
-    ordered = pd.concat([data, fake_rep], sort=False).sort_values(['stratum_id'])
+    ordered = (pd.concat([data, fake_rep], sort=False)
+        .sort_values(['stratum_id'])
+    )
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
