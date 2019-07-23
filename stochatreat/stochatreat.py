@@ -115,7 +115,7 @@ def stochatreat(data: pd.DataFrame,
 
     # if idx_col parameter was not defined.
     if idx_col is None:
-        data = data.reset_index(drop=True)
+        data = data.rename_axis('index', axis='index').reset_index()
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
