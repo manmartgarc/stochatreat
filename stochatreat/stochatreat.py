@@ -139,7 +139,7 @@ def stochatreat(data: pd.DataFrame,
 
     # combine block cells - by assigning stratum ids
     data['stratum_id'] = data.groupby(stratum_cols).ngroup()
-    strata = range(data['stratum_id'].max() + 1)
+    strata = data['stratum_id'].unique()
 
     # keep only ids and concatenated strata
     data = data[[idx_col] + ['stratum_id']].copy()
