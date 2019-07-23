@@ -219,9 +219,7 @@ def compute_count_diff(treats, probs):
 
 
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
-@pytest.mark.parametrize(
-    "stratum_cols", standard_stratum_cols
-)
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_within_strata_no_probs(n_treats, stratum_cols, df):
     """
     Tests that within strata treatment assignment counts are only as far from
@@ -245,9 +243,7 @@ def test_stochatreat_within_strata_no_probs(n_treats, stratum_cols, df):
 
 
 @pytest.mark.parametrize("probs", standard_probs)
-@pytest.mark.parametrize(
-    "stratum_cols", standard_stratum_cols
-)
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_within_strata_probs(probs, stratum_cols, df):
     """
     Tests that within strata treatment assignment counts are only as far from
@@ -291,9 +287,7 @@ def test_stochatreat_within_strata_no_misfits(probs, df_no_misfits):
 
 
 @pytest.mark.parametrize("probs", standard_probs)
-@pytest.mark.parametrize(
-    "stratum_cols", standard_stratum_cols
-)
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_global_strategy(probs, stratum_cols, df):
     treats = stochatreat(
         data=df,
@@ -313,9 +307,7 @@ def test_stochatreat_global_strategy(probs, stratum_cols, df):
 
 
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
-@pytest.mark.parametrize(
-    "stratum_cols", standard_stratum_cols
-    )
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_block_ids(df, misfit_strategy, stratum_cols):
     """Tests that the function returns the right number of stratum ids"""
     treats = stochatreat(
@@ -339,3 +331,64 @@ def test_stochatreat_block_ids(df, misfit_strategy, stratum_cols):
         )
     else:
         assert n_unique_stratum_ids == n_unique_strata
+
+
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_random_state(df, stratum_cols, misfit_strategy):
+    """
+    Tests that the results are the same on two consecutive calls with the same
+    random state
+    """
+    random_state = 42
+    treats = []
+    for _ in range(2):
+        treatments_i = stochatreat(
+            data=df,
+            stratum_cols=stratum_cols,
+            treats=2,
+            idx_col="id",
+            random_state=random_state,
+            misfit_strategy=misfit_strategy,
+        )
+        treats.append(treatments_i)
+    
+    pd.testing.assert_series_equal(
+        treats[0]["treat"], treats[1]["treat"]
+    )
+
+    
+@pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
+@pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
+def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
+    """
+    Tests that the mapping between idx_col and the assignments is the same on
+    two consecutive calls with the same random state and shuffled data points
+    """
+    random_state = 42
+    treats = []
+    for _ in range(2):
+        treatments_i = stochatreat(
+            data=df,
+            stratum_cols=stratum_cols,
+            treats=2,
+            idx_col="id",
+            random_state=random_state,
+            misfit_strategy=misfit_strategy,
+        )
+        treatments_i = treatments_i.sort_values("id")
+        treats.append(treatments_i)
+
+        df = df.sample(len(df), random_state=random_state)
+    
+    pd.testing.assert_series_equal(
+        treats[0]["treat"], treats[1]["treat"]
+    )
+
+
+
+
+    
+
+
+

@@ -135,7 +135,8 @@ def stochatreat(data: pd.DataFrame,
     if misfit_strategy not in ('stratum', 'global'):
         raise ValueError("the strategy must be one of 'stratum' or 'global'")
 
-    # sort data
+    # sort data - useful to preserve correspondence between `idx_col` and
+    # assignments
     data = data.sort_values(by=idx_col)
 
     # combine block cells - by assigning stratum ids
