@@ -137,16 +137,18 @@ def stochatreat(data: pd.DataFrame,
     # sort data
     data = data.sort_values(by=idx_col)
 
-    # combine block cells
-    data = data[[idx_col] + stratum_cols].copy()
-    data['stratum'] = data[stratum_cols].astype(str).sum(axis=1)
-    strata = sorted(set(data['stratum']))
+    # combine block cells - by assigning stratum ids
+    data['stratum_id'] = data.groupby(stratum_cols).ngroup()
+    strata = data['stratum_id'].unique()
 
+    # keep only ids and concatenated strata
+    data = data[[idx_col] + ['stratum_id']].copy()
+    
     # apply weights to each stratum if sampling is wanted
     if size is not None:
         size = int(size)
         # get sampling weights
-        strata_fracs = (data['stratum']
+        strata_fracs = (data['stratum_id']
             .value_counts(normalize=True)
             .sort_index()
         )
@@ -154,7 +156,7 @@ def stochatreat(data: pd.DataFrame,
         # draw sample
         sample = []
         for i, stratum in enumerate(strata):
-            stratum_sample = data[data['stratum'] == stratum].copy()
+            stratum_sample = data[data['stratum_id'] == stratum].copy()
             # draw sample using fractions
             stratum_sample = stratum_sample.sample(
                 n=reduced_sizes[i],
@@ -166,9 +168,6 @@ def stochatreat(data: pd.DataFrame,
         data = pd.concat(sample)
 
         assert sum(reduced_sizes) == len(data)
-
-    # keep only ids and concatenated strata
-    data = data[[idx_col] + ['stratum']]
 
     # Treatment assignment proceeds in two stages within each stratum:
     # 1. In as far as units can be neatly divided in the proportions given by
@@ -194,19 +193,17 @@ def stochatreat(data: pd.DataFrame,
 
     if misfit_strategy == 'global':
         # separate the global misfits
-        misfit_data = data.groupby('stratum').apply(
+        misfit_data = data.groupby('stratum_id').apply(
             lambda x: x.sample(
                 n=(x.shape[0] % lcm_prob_denominators),
                 replace=False,
                 random_state=random_state
             )
-        ).droplevel(level='stratum')
+        ).droplevel(level='stratum_id')
         good_form_data = data.drop(index=misfit_data.index)
 
         # assign the misfits their own stratum and concatenate
-        if 'misfit_stratum' in strata:
-            raise ValueError("There is already a stratum called 'misfit_stratum' in the data.")
-        misfit_data.loc[:, 'stratum'] = 'misfit_stratum'
+        misfit_data.loc[:, 'stratum_id'] = np.Inf
         data = pd.concat([good_form_data, misfit_data])
 
     # =========================================================================
@@ -217,11 +214,8 @@ def stochatreat(data: pd.DataFrame,
     # to deal with misfits, in this case we can add fake rows to make it so everything
     # is divisible and toss them later -> no costly apply inside strata
 
-    # to make sure we have no problems when sorting 
-    data.loc[:, 'stratum'] = data['stratum'].astype(str)
-
     # add fake rows for each stratum so the total number can be divided by num_treatments
-    fake = pd.DataFrame({'fake': data.groupby('stratum').size()}).reset_index()  
+    fake = pd.DataFrame({'fake': data.groupby('stratum_id').size()}).reset_index()  
     fake.loc[:, 'fake'] = (
         (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % lcm_prob_denominators
     )
@@ -230,7 +224,7 @@ def stochatreat(data: pd.DataFrame,
     data.loc[:, 'fake'] = False
     fake_rep.loc[:, 'fake'] = True
 
-    ordered = pd.concat([data, fake_rep], sort=False).sort_values(['stratum'])
+    ordered = pd.concat([data, fake_rep], sort=False).sort_values(['stratum_id'])
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
@@ -244,11 +238,6 @@ def stochatreat(data: pd.DataFrame,
     ordered = ordered[~ordered['fake']].drop(columns=['fake'])
 
     data.loc[:, 'treat'] = ordered['treat']
-
-    # add unique integer ids for the strata
-    data['stratum_id'] = data.groupby(['stratum']).ngroup()
-    data = data.drop(columns=['stratum'])
-
     data['treat'] = data['treat'].astype(np.int64)
 
     assert data['treat'].isnull().sum() == 0
