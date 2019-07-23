@@ -14,7 +14,7 @@ def correct_params():
         "probs": [0.1, 0.9],
         "treat": 2,
         "data": pd.DataFrame(data={"id": np.arange(100),
-                                   "block": np.arange(100)}),
+                                   "stratum": np.arange(100)}),
         "idx_col": "id",
     }
     return params
@@ -28,7 +28,7 @@ def test_stochatreat_input_invalid_probs(correct_params):
     with pytest.raises(Exception):
         stochatreat(
             data=correct_params["data"],
-            block_cols=["block"],
+            stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=probs_not_sum_to_one,
@@ -44,7 +44,7 @@ def test_stochatreat_input_more_treats_than_probs(correct_params):
     with pytest.raises(Exception):
         stochatreat(
             data=correct_params["data"],
-            block_cols=["block"],
+            stratum_cols=["stratum"],
             treats=treat_too_large,
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -59,7 +59,7 @@ def test_stochatreat_input_empty_data(correct_params):
     with pytest.raises(ValueError):
         stochatreat(
             data=empty_data,
-            block_cols="block",
+            stratum_cols="stratum",
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -75,7 +75,7 @@ def test_stochatreat_input_idx_col_str(correct_params):
     with pytest.raises(TypeError):
         stochatreat(
             data=correct_params["data"],
-            block_cols=["block"],
+            stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=idx_col_not_str,
             probs=correct_params["probs"],
@@ -90,7 +90,7 @@ def test_stochatreat_input_invalid_size(correct_params):
     with pytest.raises(ValueError):
         stochatreat(
             data=correct_params["data"],
-            block_cols=["block"],
+            stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -104,12 +104,12 @@ def test_stochatreat_input_idx_col_unique(correct_params):
     of the data
     """
     data_with_idx_col_with_duplicates = pd.DataFrame(
-        data={"id": 1, "block": np.arange(100)}
+        data={"id": 1, "stratum": np.arange(100)}
     )
     with pytest.raises(ValueError):
         stochatreat(
             data=data_with_idx_col_with_duplicates,
-            block_cols=["block"],
+            stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -125,7 +125,7 @@ def test_stochatreat_input_invalid_strategy(correct_params):
     with pytest.raises(ValueError):
         stochatreat(
             data=correct_params["data"],
-            block_cols=["block"],
+            stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -138,14 +138,14 @@ def treatments_dict():
     """fixture of stochatreat() output to test output format"""
     treats = 2
     data = pd.DataFrame(
-        data={"id": np.arange(100), "block": [0] * 40 + [1] * 30 + [2] * 30}
+        data={"id": np.arange(100), "stratum": [0] * 40 + [1] * 30 + [2] * 30}
     )
     idx_col = "id"
     size = 90
 
     treatments = stochatreat(
         data=data,
-        block_cols=["block"],
+        stratum_cols=["stratum"],
         treats=treats,
         idx_col=idx_col,
         size=size,
@@ -189,22 +189,22 @@ def test_stochatreat_output_treat_col_dtype(treatments_dict):
     assert treatments_df["treat"].dtype == np.int64, assert_msg
 
 
-def test_stochatreat_output_block_id_col(treatments_dict):
+def test_stochatreat_output_stratum_id_col(treatments_dict):
     """
-    Tests that the function's output contains the `block_id`
-    """
-    treatments_df = treatments_dict["treatments"]
-    assert_msg = "Block_id column is missing"
-    assert "block_id" in treatments_df.columns, assert_msg
-
-
-def test_stochatreat_output_block_id_col_dtype(treatments_dict):
-    """
-    Tests that the function's output's 'block_id` column is an int column
+    Tests that the function's output contains the `stratum_id`
     """
     treatments_df = treatments_dict["treatments"]
-    assert_msg = "Block_id column is missing"
-    assert treatments_df["block_id"].dtype == np.int64, assert_msg
+    assert_msg = "stratum_id column is missing"
+    assert "stratum_id" in treatments_df.columns, assert_msg
+
+
+def test_stochatreat_output_stratum_id_col_dtype(treatments_dict):
+    """
+    Tests that the function's output's 'stratum_id` column is an int column
+    """
+    treatments_df = treatments_dict["treatments"]
+    assert_msg = "stratum_id column is missing"
+    assert treatments_df["stratum_id"].dtype == np.int64, assert_msg
 
 
 def test_stochatreat_output_idx_col(treatments_dict):
@@ -245,7 +245,7 @@ def treatments_dict_rand_index():
     data = pd.DataFrame(
         data={
             "id": np.random.permutation(100), 
-            "block": [0] * 40 + [1] * 30 + [2] * 30
+            "stratum": [0] * 40 + [1] * 30 + [2] * 30
         }
     )
     data = data.set_index( 
@@ -255,7 +255,7 @@ def treatments_dict_rand_index():
 
     treatments = stochatreat(
         data=data,
-        block_cols=["block"],
+        stratum_cols=["stratum"],
         treats=treats,
         idx_col=idx_col,
         random_state=42,
@@ -263,7 +263,7 @@ def treatments_dict_rand_index():
 
     treatments_dict = {
         "data": data,
-        "block_cols": ["block"],
+        "stratum_cols": ["stratum"],
         "idx_col": idx_col,
         "treatments": treatments,
         "n_treatments": treats,
@@ -291,7 +291,7 @@ def test_stochatreat_output_index_content_unchanged(
 
     treatments = stochatreat(
         data=data_with_rand_index,
-        block_cols=["block"],
+        stratum_cols=["stratum"],
         probs=probs,
         treats=2,
         idx_col=treatments_dict_rand_index["idx_col"],
@@ -316,7 +316,7 @@ def test_stochatreat_output_index_and_idx_col_correspondence(
 
     treatments = stochatreat(
         data=data_with_rand_index,
-        block_cols="block",
+        stratum_cols="stratum",
         probs=probs,
         treats=2,
         idx_col=idx_col,
@@ -329,3 +329,19 @@ def test_stochatreat_output_index_and_idx_col_correspondence(
     pd.testing.assert_series_equal(
         data_with_rand_index[idx_col], treatments[idx_col]
     )
+
+def test_stochatreat_output_sample(correct_params):
+    """
+    Tests that the function samples to the correct size
+    """
+    size = 100
+    assignments = stochatreat(
+        data=correct_params["data"],
+        stratum_cols=["stratum"],
+        treats=correct_params["treat"],
+        idx_col=correct_params["idx_col"],
+        probs=correct_params["probs"],
+        size=size
+    )
+
+    assert len(assignments) == size
