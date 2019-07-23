@@ -329,3 +329,19 @@ def test_stochatreat_output_index_and_idx_col_correspondence(
     pd.testing.assert_series_equal(
         data_with_rand_index[idx_col], treatments[idx_col]
     )
+
+def test_stochatreat_output_sample(correct_params):
+    """
+    Tests that the function samples to the correct size
+    """
+    size = 100
+    assignments = stochatreat(
+        data=correct_params["data"],
+        stratum_cols=["stratum"],
+        treats=correct_params["treat"],
+        idx_col=correct_params["idx_col"],
+        probs=correct_params["probs"],
+        size=size
+    )
+
+    assert len(assignments) == size
