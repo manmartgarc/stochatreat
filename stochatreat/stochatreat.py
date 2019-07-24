@@ -165,7 +165,7 @@ def stochatreat(data: pd.DataFrame,
 
         assert sum(reduced_sizes) == len(data)
 
-    # Treatment assignment proceeds in two stages:
+    # Treatment assignment proceeds in two stages within each stratum:
     # 1. In as far as units can be neatly divided in the proportions given by
     #    prob they are so divided.
     # 2. Any leftovers ("misfits") are dealt with using either of the methods
