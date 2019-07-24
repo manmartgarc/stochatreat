@@ -63,21 +63,22 @@ def stochatreat(data: pd.DataFrame,
     Returns
     -------
     pandas.DataFrame with idx_col, treat (treatment assignments) and 
-    stratum_ids
+    stratum_id (the id of the stratum within which the assignment procedure
+    was carried out) columns
 
     Usage
     -----
-    Single block:
-        >>> treats = stochatreat(data=data,             # your dataframe
-                                 stratum_cols='block1', # the strata variable
-                                 treats=2,              # including control
-                                 idx_col='myid',        # the unique id column
-                                 random_state=42)       # seed for rng
+    Single stratum:
+        >>> treats = stochatreat(data=data,               # your dataframe
+                                 stratum_cols='stratum1', # stratum variable
+                                 treats=2,                # including control
+                                 idx_col='myid',          # unique id column
+                                 random_state=42)         # seed for rng
         >>> data = data.merge(treats, how='left', on='myid')
 
-    Multiple blocks:
+    Multiple strata:
         >>> treats = stochatreat(data=data,
-                                 stratum_cols=['block1', 'block2'],
+                                 stratum_cols=['stratum1', 'stratum2'],
                                  treats=2,
                                  probs=[1/3, 2/3],
                                  idx_col='myid',
@@ -119,6 +120,9 @@ def stochatreat(data: pd.DataFrame,
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
+    
+    # retrieve type to check and re-assign in the end
+    idx_col_type = data[idx_col].dtype
 
     # check for unique identifiers
     if data[idx_col].duplicated(keep=False).sum() > 0:
@@ -139,7 +143,7 @@ def stochatreat(data: pd.DataFrame,
     # assignments
     data = data.sort_values(by=idx_col)
 
-    # combine block cells - by assigning stratum ids
+    # combine strata cells - by assigning stratum ids
     data['stratum_id'] = data.groupby(stratum_cols).ngroup()
 
     # keep only ids and concatenated strata
@@ -205,13 +209,13 @@ def stochatreat(data: pd.DataFrame,
     # assign treatments
     # =========================================================================
     
-    # sort by strata first, and assign a long list of permuted treat_mask to
-    # deal with misfits, in this case we can add fake rows to make it so
-    # everything is divisible and toss them later -> no costly apply inside
-    # strata
+    # sort by strata first, and assign a long list of permuted `treat_mask` to
+    # deal with misfits, we add fake rows to each stratum so that its length is
+    # divisible by `lcm_prob_denominators` and toss them later 
+    # -> no costly apply inside the strata
 
     # add fake rows for each stratum so the total number can be divided by
-    # num_treatments
+    # `lcm_prob_denominators`
     fake = pd.DataFrame(
         {'fake': data.groupby('stratum_id').size()}
     ).reset_index()  
@@ -227,23 +231,25 @@ def stochatreat(data: pd.DataFrame,
     data.loc[:, 'fake'] = False
     fake_rep.loc[:, 'fake'] = True
 
-    ordered = (pd.concat([data, fake_rep], sort=False)
+    data = (pd.concat([data, fake_rep], sort=False)
         .sort_values(['stratum_id'])
     )
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
     permutations = np.argsort(
-        R.rand(len(ordered) // lcm_prob_denominators, lcm_prob_denominators),
+        R.rand(len(data) // lcm_prob_denominators, lcm_prob_denominators),
         axis=1
     )
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
-    ordered['treat'] = treat_mask[permutations].flatten(order='C')
-    ordered = ordered[~ordered['fake']].drop(columns=['fake'])
+    data.loc[:, 'treat'] = treat_mask[permutations].flatten(order='C')
+    data = data[~data['fake']].drop(columns=['fake'])
 
-    data.loc[:, 'treat'] = ordered['treat']
-    data['treat'] = data['treat'].astype(np.int64)
+    # re-assign type - as it might have changed with the addition of fake data
+    data.loc[:, idx_col] = data[idx_col].astype(idx_col_type)
+    
+    data.loc[:, 'treat'] = data['treat'].astype(np.int64)
 
     assert data['treat'].isnull().sum() == 0
     

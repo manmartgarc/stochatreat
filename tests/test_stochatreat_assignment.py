@@ -308,7 +308,7 @@ def test_stochatreat_global_strategy(probs, stratum_cols, df):
 
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
-def test_stochatreat_block_ids(df, misfit_strategy, stratum_cols):
+def test_stochatreat_stratum_ids(df, misfit_strategy, stratum_cols):
     """Tests that the function returns the right number of stratum ids"""
     treats = stochatreat(
         data=df,
