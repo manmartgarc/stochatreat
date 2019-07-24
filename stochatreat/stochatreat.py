@@ -63,21 +63,22 @@ def stochatreat(data: pd.DataFrame,
     Returns
     -------
     pandas.DataFrame with idx_col, treat (treatment assignments) and 
-    stratum_ids
+    stratum_id (the id of the stratum within which the assignment procedure
+    was carried out) columns
 
     Usage
     -----
-    Single block:
-        >>> treats = stochatreat(data=data,             # your dataframe
-                                 stratum_cols='block1', # the strata variable
-                                 treats=2,              # including control
-                                 idx_col='myid',        # the unique id column
-                                 random_state=42)       # seed for rng
+    Single stratum:
+        >>> treats = stochatreat(data=data,               # your dataframe
+                                 stratum_cols='stratum1', # stratum variable
+                                 treats=2,                # including control
+                                 idx_col='myid',          # unique id column
+                                 random_state=42)         # seed for rng
         >>> data = data.merge(treats, how='left', on='myid')
 
-    Multiple blocks:
+    Multiple strata:
         >>> treats = stochatreat(data=data,
-                                 stratum_cols=['block1', 'block2'],
+                                 stratum_cols=['stratum1', 'stratum2'],
                                  treats=2,
                                  probs=[1/3, 2/3],
                                  idx_col='myid',
@@ -139,7 +140,7 @@ def stochatreat(data: pd.DataFrame,
     # assignments
     data = data.sort_values(by=idx_col)
 
-    # combine block cells - by assigning stratum ids
+    # combine strata cells - by assigning stratum ids
     data['stratum_id'] = data.groupby(stratum_cols).ngroup()
 
     # keep only ids and concatenated strata
@@ -205,13 +206,13 @@ def stochatreat(data: pd.DataFrame,
     # assign treatments
     # =========================================================================
     
-    # sort by strata first, and assign a long list of permuted treat_mask to
-    # deal with misfits, in this case we can add fake rows to make it so
-    # everything is divisible and toss them later -> no costly apply inside
-    # strata
+    # sort by strata first, and assign a long list of permuted `treat_mask` to
+    # deal with misfits, we add fake rows to each stratum so that its length is
+    # divisible by `lcm_prob_denominators` and toss them later 
+    # -> no costly apply inside the strata
 
     # add fake rows for each stratum so the total number can be divided by
-    # num_treatments
+    # `lcm_prob_denominators`
     fake = pd.DataFrame(
         {'fake': data.groupby('stratum_id').size()}
     ).reset_index()  
