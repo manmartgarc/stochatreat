@@ -120,6 +120,9 @@ def stochatreat(data: pd.DataFrame,
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
+    
+    # retrieve type to check and re-assign in the end
+    idx_col_type = data[idx_col].dtype
 
     # check for unique identifiers
     if data[idx_col].duplicated(keep=False).sum() > 0:
@@ -228,23 +231,25 @@ def stochatreat(data: pd.DataFrame,
     data.loc[:, 'fake'] = False
     fake_rep.loc[:, 'fake'] = True
 
-    ordered = (pd.concat([data, fake_rep], sort=False)
+    data = (pd.concat([data, fake_rep], sort=False)
         .sort_values(['stratum_id'])
     )
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
     permutations = np.argsort(
-        R.rand(len(ordered) // lcm_prob_denominators, lcm_prob_denominators),
+        R.rand(len(data) // lcm_prob_denominators, lcm_prob_denominators),
         axis=1
     )
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
-    ordered['treat'] = treat_mask[permutations].flatten(order='C')
-    ordered = ordered[~ordered['fake']].drop(columns=['fake'])
+    data.loc[:, 'treat'] = treat_mask[permutations].flatten(order='C')
+    data = data[~data['fake']].drop(columns=['fake'])
 
-    data.loc[:, 'treat'] = ordered['treat']
-    data['treat'] = data['treat'].astype(np.int64)
+    # re-assign type - as it might have changed with the addition of fake data
+    data.loc[:, idx_col] = data[idx_col].astype(idx_col_type)
+    
+    data.loc[:, 'treat'] = data['treat'].astype(np.int64)
 
     assert data['treat'].isnull().sum() == 0
     
