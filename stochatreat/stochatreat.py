@@ -45,24 +45,24 @@ def stochatreat(data: pd.DataFrame,
     stratum_cols    :   The columns in 'data' that you want to stratify over.
     treats          :   The number of treatments you would like to
                         implement, including control.
-    probs           :   The assignment probabilities for each of the 
+    probs           :   The assignment probabilities for each of the
                         treatments.
     random_state    :   The seed for the rng instance.
     idx_col         :   The column name that indicates the ids for your data.
     size            :   The size of the sample if you would like to sample
                         from your data.
-    misfit_strategy :   The strategy used to assign misfits. Can be one of 
+    misfit_strategy :   The strategy used to assign misfits. Can be one of
                         'stratum' or 'global'.
                         If 'stratum', will assign misfits randomly and
                         independently within each stratum using probs.
-                        If 'global', will group all misfits into one stratum 
-                        and do a full assignment procedure in this new stratum 
-                        with local random assignments of the misfits in this 
+                        If 'global', will group all misfits into one stratum
+                        and do a full assignment procedure in this new stratum
+                        with local random assignments of the misfits in this
                         stratum
 
     Returns
     -------
-    pandas.DataFrame with idx_col, treat (treatment assignments) and 
+    pandas.DataFrame with idx_col, treat (treatment assignments) and
     stratum_id (the id of the stratum within which the assignment procedure
     was carried out) columns
 
@@ -120,7 +120,7 @@ def stochatreat(data: pd.DataFrame,
         idx_col = 'index'
     elif type(idx_col) is not str:
         raise TypeError('idx_col has to be a string.')
-    
+
     # retrieve type to check and re-assign in the end
     idx_col_type = data[idx_col].dtype
 
@@ -148,15 +148,14 @@ def stochatreat(data: pd.DataFrame,
 
     # keep only ids and concatenated strata
     data = data[[idx_col] + ['stratum_id']].copy()
-    
+
     # apply weights to each stratum if sampling is wanted
     if size is not None:
         size = int(size)
         # get sampling weights
         strata_fracs = (data['stratum_id']
-            .value_counts(normalize=True)
-            .sort_index()
-        )
+                        .value_counts(normalize=True)
+                        .sort_index())
         reduced_sizes = (strata_fracs * size).round().astype(int)
         # draw sample
         data = data.groupby('stratum_id').apply(
@@ -176,11 +175,11 @@ def stochatreat(data: pd.DataFrame,
 
     # 1. determine how to divide cleanly as much as possible
 
-    # convert all probs to fractions and get the lowest common multiple of 
+    # convert all probs to fractions and get the lowest common multiple of
     # their denominators
     lcm_prob_denominators = get_lcm_prob_denominators(probs)
 
-    # produce the assignment mask that we will use to achieve perfect 
+    # produce the assignment mask that we will use to achieve perfect
     # proportions
     treat_mask = np.repeat(
         treatment_ids, (lcm_prob_denominators*probs).astype(int)
@@ -208,39 +207,32 @@ def stochatreat(data: pd.DataFrame,
     # =========================================================================
     # assign treatments
     # =========================================================================
-    
+
     # sort by strata first, and assign a long list of permuted `treat_mask` to
     # deal with misfits, we add fake rows to each stratum so that its length is
-    # divisible by `lcm_prob_denominators` and toss them later 
+    # divisible by `lcm_prob_denominators` and toss them later
     # -> no costly apply inside the strata
 
     # add fake rows for each stratum so the total number can be divided by
     # `lcm_prob_denominators`
-    fake = pd.DataFrame(
-        {'fake': data.groupby('stratum_id').size()}
-    ).reset_index()  
-    fake.loc[:, 'fake'] = (
-        (lcm_prob_denominators - fake['fake'] % lcm_prob_denominators) % 
-            lcm_prob_denominators
-    )
-    fake_rep = pd.DataFrame(
-        fake.values.repeat(fake['fake'], axis=0), 
-        columns=fake.columns
-    )
+    fake = pd.DataFrame({'fake': data.groupby('stratum_id').size()})
+    fake = fake.reset_index()
+    fake.loc[:, 'fake'] = ((lcm_prob_denominators
+                            - fake['fake'] % lcm_prob_denominators)
+                           % lcm_prob_denominators)
+    fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0),
+                            columns=fake.columns)
 
     data.loc[:, 'fake'] = False
     fake_rep.loc[:, 'fake'] = True
 
-    data = (pd.concat([data, fake_rep], sort=False)
-        .sort_values(['stratum_id'])
-    )
+    data = pd.concat([data, fake_rep], sort=False).sort_values(by='stratum_id')
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
-    permutations = np.argsort(
-        R.rand(len(data) // lcm_prob_denominators, lcm_prob_denominators),
-        axis=1
-    )
+    permutations = np.argsort(R.rand(len(data) // lcm_prob_denominators,
+                                     lcm_prob_denominators),
+                              axis=1)
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
     data.loc[:, 'treat'] = treat_mask[permutations].flatten(order='C')
@@ -248,9 +240,9 @@ def stochatreat(data: pd.DataFrame,
 
     # re-assign type - as it might have changed with the addition of fake data
     data.loc[:, idx_col] = data[idx_col].astype(idx_col_type)
-    
+
     data.loc[:, 'treat'] = data['treat'].astype(np.int64)
 
     assert data['treat'].isnull().sum() == 0
-    
+
     return data
