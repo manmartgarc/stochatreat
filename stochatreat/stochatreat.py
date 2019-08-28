@@ -24,7 +24,7 @@ from .utils import get_lcm_prob_denominators
 def stochatreat(data: pd.DataFrame,
                 stratum_cols: List[str],
                 treats: int,
-                probs: List[float] = [None],
+                probs: List[float] = None,
                 random_state: int = 42,
                 idx_col: str = None,
                 size: int = None,
@@ -85,6 +85,7 @@ def stochatreat(data: pd.DataFrame,
                                  random_state=42)
         >>> data = data.merge(treats, how='left', on='myid')
     """
+    # pylint: disable=invalid-name
     R = np.random.RandomState(random_state)
 
     # =========================================================================
@@ -95,10 +96,10 @@ def stochatreat(data: pd.DataFrame,
     # create treatment array and probability array
     treatment_ids = list(range(treats))
     # if no probabilities stated
-    if probs == [None]:
+    if probs is None:
         frac = 1 / len(treatment_ids)
         probs = np.array([frac] * len(treatment_ids))
-    elif probs != [None]:
+    elif probs is not None:
         probs = np.array(probs)
         if probs.sum() != 1:
             raise ValueError('The probabilities must add up to 1')
@@ -111,14 +112,14 @@ def stochatreat(data: pd.DataFrame,
         raise ValueError('Make sure that your dataframe is not empty.')
 
     # check length of data
-    if len(data) < 1:
+    if len(data) < 2:
         raise ValueError('Make sure your data has enough observations.')
 
     # if idx_col parameter was not defined.
     if idx_col is None:
         data = data.rename_axis('index', axis='index').reset_index()
         idx_col = 'index'
-    elif type(idx_col) is not str:
+    elif not isinstance(idx_col, str):
         raise TypeError('idx_col has to be a string.')
 
     # retrieve type to check and re-assign in the end
@@ -133,7 +134,7 @@ def stochatreat(data: pd.DataFrame,
         raise ValueError('Size argument is larger than the sample universe.')
 
     # deal with multiple strata
-    if type(stratum_cols) is str:
+    if isinstance(stratum_cols, str):
         stratum_cols = [stratum_cols]
 
     if misfit_strategy not in ('stratum', 'global'):
