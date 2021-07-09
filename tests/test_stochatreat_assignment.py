@@ -1,17 +1,13 @@
-import pytest
-
-from math import gcd
-
 import numpy as np
 import pandas as pd
+import pytest
+from stochatreat.stochatreat import stochatreat
+from stochatreat.utils import get_lcm_prob_denominators
 
-from stochatreat import stochatreat
-from stochatreat import get_lcm_prob_denominators
-
-
-################################################################################
+###############################################################################
 # fixtures
-################################################################################
+###############################################################################
+
 
 @pytest.fixture(params=[10_000, 100_000])
 def df(request):
@@ -26,6 +22,7 @@ def df(request):
     )
 
     return df
+
 
 # a set of treatment assignment probabilities to throw at many tests
 standard_probs = [[0.1, 0.9],
@@ -61,24 +58,25 @@ def df_no_misfits():
 
     return df
 
-probs_no_misfits =[
+
+probs_no_misfits = [
     [0.1, 0.9],
     [0.5, 0.5],
     [0.9, 0.1],
 ]
 
 
-################################################################################
+###############################################################################
 # overall treatment assignment proportions
-################################################################################
+###############################################################################
 
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_no_probs(n_treats, stratum_cols, df):
     """
-    Tests that overall treatment assignment proportions across all strata are as
-    intended with equal treatment assignment probabilities -- relies on the Law
-    of Large Numbers, not deterministic
+    Tests that overall treatment assignment proportions across all strata are
+    as intended with equal treatment assignment probabilities -- relies on the
+    Law of Large Numbers, not deterministic
     """
     treats = stochatreat(
         data=df,
@@ -99,9 +97,9 @@ def test_stochatreat_no_probs(n_treats, stratum_cols, df):
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_probs(probs, stratum_cols, df):
     """
-    Tests that overall treatment assignment proportions across all strata are as
-    intended with unequal treatment assignment probabilities -- relies on the
-    Law of Large Numbers, not deterministic
+    Tests that overall treatment assignment proportions across all strata are
+    as intended with unequal treatment assignment probabilities -- relies on
+    the Law of Large Numbers, not deterministic
     """
     treats = stochatreat(
         data=df,
@@ -121,8 +119,8 @@ def test_stochatreat_probs(probs, stratum_cols, df):
 @pytest.mark.parametrize("probs", probs_no_misfits)
 def test_stochatreat_no_misfits(probs, df_no_misfits):
     """
-    Tests that overall treatment assignment proportions across all strata are as
-    intended when strata are such that there are no misfits
+    Tests that overall treatment assignment proportions across all strata are
+    as intended when strata are such that there are no misfits
     """
     treats = stochatreat(
         data=df_no_misfits,
@@ -142,9 +140,9 @@ def test_stochatreat_no_misfits(probs, df_no_misfits):
 @pytest.mark.parametrize("probs", standard_probs)
 def test_stochatreat_only_misfits(probs):
     """
-    Tests that overall treatment assignment proportions across all strata are as
-    intended when strata are such that there are only misfits and the number of
-    units is sufficiently large -- relies on the Law of Large Numbers, not
+    Tests that overall treatment assignment proportions across all strata are
+    as intended when strata are such that there are only misfits and the number
+    of units is sufficiently large -- relies on the Law of Large Numbers, not
     deterministic
     """
     N = 10_000
@@ -169,25 +167,25 @@ def test_stochatreat_only_misfits(probs):
     )
 
 
-################################################################################
+###############################################################################
 # within-stratum treatment assignments
-################################################################################
+###############################################################################
 
 def get_within_strata_counts(treats):
     """Helper function to compute the treatment shares within strata"""
     treatment_counts = (treats
-        .groupby(["stratum_id", "treat"])[["id"]]
-        .count()
-        .rename(columns={"id": "treat_count"})
-        .reset_index()
-    )
+                        .groupby(["stratum_id", "treat"])[["id"]]
+                        .count()
+                        .rename(columns={"id": "treat_count"})
+                        .reset_index()
+                        )
 
     stratum_counts = (treats
-        .groupby(["stratum_id"])[["id"]]
-        .count()
-        .rename(columns={"id": "stratum_count"})
-        .reset_index()
-    )
+                      .groupby(["stratum_id"])[["id"]]
+                      .count()
+                      .rename(columns={"id": "stratum_count"})
+                      .reset_index()
+                      )
 
     counts = pd.merge(
         treatment_counts, stratum_counts, on="stratum_id", how="left"
@@ -229,15 +227,15 @@ def test_stochatreat_within_strata_no_probs(n_treats, stratum_cols, df):
     probs = n_treats * [1 / n_treats]
     lcm_prob_denominators = n_treats
     treats = stochatreat(
-        data=df, 
-        stratum_cols=stratum_cols, 
-        treats=n_treats, 
-        idx_col="id", 
+        data=df,
+        stratum_cols=stratum_cols,
+        treats=n_treats,
+        idx_col="id",
         random_state=42
     )
     comp = compute_count_diff(treats, probs)
 
-    assert_msg = """The counts differences exceed the bound that misfit 
+    assert_msg = """The counts differences exceed the bound that misfit
     allocation should not exceed"""
     assert (comp["count_diff"] < lcm_prob_denominators).all(), assert_msg
 
@@ -261,7 +259,7 @@ def test_stochatreat_within_strata_probs(probs, stratum_cols, df):
     )
     comp = compute_count_diff(treats, probs)
 
-    assert_msg = """The counts differences exceed the bound that misfit 
+    assert_msg = """The counts differences exceed the bound that misfit
     allocation should not exceed"""
     assert (comp["count_diff"] < lcm_prob_denominators).all(), assert_msg
 
@@ -352,12 +350,12 @@ def test_stochatreat_random_state(df, stratum_cols, misfit_strategy):
             misfit_strategy=misfit_strategy,
         )
         treats.append(treatments_i)
-    
+
     pd.testing.assert_series_equal(
         treats[0]["treat"], treats[1]["treat"]
     )
 
-    
+
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
@@ -380,15 +378,7 @@ def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
         treats.append(treatments_i)
 
         df = df.sample(len(df), random_state=random_state)
-    
+
     pd.testing.assert_series_equal(
         treats[0]["treat"], treats[1]["treat"]
     )
-
-
-
-
-    
-
-
-

@@ -1,9 +1,8 @@
-import pytest
-
 import numpy as np
 import pandas as pd
+import pytest
+from stochatreat.stochatreat import stochatreat
 
-from stochatreat import stochatreat
 
 @pytest.fixture
 def correct_params():
@@ -185,7 +184,7 @@ def test_stochatreat_output_treat_col_dtype(treatments_dict):
     Tests that the function's output's 'treat` column is an int column
     """
     treatments_df = treatments_dict["treatments"]
-    assert_msg= "Treatment column is missing"
+    assert_msg = "Treatment column is missing"
     assert treatments_df["treat"].dtype == np.int64, assert_msg
 
 
@@ -244,12 +243,12 @@ def treatments_dict_rand_index():
     treats = 2
     data = pd.DataFrame(
         data={
-            "id": np.random.permutation(100), 
+            "id": np.random.permutation(100),
             "stratum": [0] * 40 + [1] * 30 + [2] * 30
         }
     )
-    data = data.set_index( 
-        pd.Index(np.random.choice(300, 100, replace=False)) 
+    data = data.set_index(
+        pd.Index(np.random.choice(300, 100, replace=False))
     )
     idx_col = "id"
 
@@ -271,7 +270,8 @@ def treatments_dict_rand_index():
 
     return treatments_dict
 
-standard_probs = [[0.1, 0.9], 
+
+standard_probs = [[0.1, 0.9],
                   [1/3, 2/3],
                   [0.5, 0.5],
                   [2/3, 1/3],
@@ -329,6 +329,7 @@ def test_stochatreat_output_index_and_idx_col_correspondence(
     pd.testing.assert_series_equal(
         data_with_rand_index[idx_col], treatments[idx_col]
     )
+
 
 def test_stochatreat_output_sample(correct_params):
     """

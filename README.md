@@ -6,13 +6,14 @@ This is a Python module to employ block randomization using pandas. Mainly thoug
 
 ## Installation
 
-```
-pip install stochatreat
+```bash
+pip install stochatreat$$
 ```
 
 ## Usage
 
 Single cluster:
+
 ```python
 from stochatreat import stochatreat
 import numpy as np
@@ -20,16 +21,18 @@ import pandas as pd
 
 # make 1000 households in 5 different neighborhoods.
 np.random.seed(42)
-df = pd.DataFrame(data={'id': list(range(1000)),
-                        'nhood': np.random.randint(1, 6, size=1000)})
+df = pd.DataFrame(
+      data={'id': list(range(1000)),
+      'nhood': np.random.randint(1, 6, size=1000)})
 
 # randomly assign treatments by neighborhoods.
-treats = stochatreat(data=df,              # your dataframe
-                     stratum_cols='nhood',   # the blocking variable
-                     treats=2,             # including control
-                     idx_col='id',         # the unique id column
-                     random_state=42,
-                     misfit_strategy='stratum')
+treats = stochatreat(
+      data=df,                      # your dataframe
+      stratum_cols='nhood',         # the blocking variable
+      treats=2,                     # including control
+      idx_col='id',                 # the unique id column
+      random_state=42,              # random seed
+      misfit_strategy='stratum')    # the misfit strategy to use
 # merge back with original data
 df = df.merge(treats, how='left', on='id')
 
@@ -47,6 +50,7 @@ nhood
 ```
 
 Multiple clusters and treatment probabilities:
+
 ```python
 from stochatreat import stochatreat
 import numpy as np
@@ -88,6 +92,7 @@ nhood dummy
 ```
 
 ## Acknowledgments
-- `stochatreat` is totally inspired by [Alvaro Carril's](https://acarril.github.io/) fantastic Stata package: [`randtreat`](https://acarril.github.io/posts/randtreat), which was published in [The Stata Journal](https://www.stata-journal.com/article.html?article=st0490) :trumpet:.
+
+- `stochatreat` is totally inspired by [Alvaro Carril's](https://acarril.github.io/) fantastic Stata package: [`randtreat`](https://acarril.github.io/posts/randtreat), which was published in [The Stata Journal](https://www.stata-journal.com/article.html?article=st0490).
 - [David McKenzie's](http://blogs.worldbank.org/impactevaluations/tools-of-the-trade-doing-stratified-randomization-with-uneven-numbers-in-some-strata) fantastic post (and blog) about running RCTs for the World Bank.
 - [*In Pursuit of Balance: Randomization in Practice in Development Field Experiments.* Bruhn, McKenzie, 2009](https://www.aeaweb.org/articles?id=10.1257/app.1.4.200)

@@ -1,30 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  8 14:34:47 2018
-
+Created on Thursday, 8th November 2018 2:34:47 pm
 ===============================================================================
-@author:    Manuel Martinez
+@filename:  stochatreat.py
+@author:    Manuel Martinez (manmartgarc@gmail.com)
 @project:   stochatreat
 @purpose:   Define a function that assign treatments over an arbitrary
             number of strata.
 ===============================================================================
 """
-from typing import List
+from typing import List, Optional
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from .utils import get_lcm_prob_denominators
-
-# %%===========================================================================
-# Main
-# =============================================================================
 
 
 def stochatreat(data: pd.DataFrame,
                 stratum_cols: List[str],
                 treats: int,
-                probs: List[float] = None,
+                probs: Optional[List[float]] = None,
                 random_state: int = 42,
                 idx_col: str = None,
                 size: int = None,
@@ -98,14 +94,14 @@ def stochatreat(data: pd.DataFrame,
     # if no probabilities stated
     if probs is None:
         frac = 1 / len(treatment_ids)
-        probs = np.array([frac] * len(treatment_ids))
+        probs_np = np.array([frac] * len(treatment_ids))
     elif probs is not None:
-        probs = np.array(probs)
-        if probs.sum() != 1:
+        probs_np = np.array(probs)
+        if probs_np.sum() != 1:
             raise ValueError('The probabilities must add up to 1')
 
     assertmsg = 'length of treatments and probs must be the same'
-    assert len(treatment_ids) == len(probs), assertmsg
+    assert len(treatment_ids) == len(probs_np), assertmsg
 
     # check if dataframe is empty
     if data.empty:
@@ -178,12 +174,12 @@ def stochatreat(data: pd.DataFrame,
 
     # convert all probs to fractions and get the lowest common multiple of
     # their denominators
-    lcm_prob_denominators = get_lcm_prob_denominators(probs)
+    lcm_prob_denominators = get_lcm_prob_denominators(probs_np)
 
     # produce the assignment mask that we will use to achieve perfect
     # proportions
     treat_mask = np.repeat(
-        treatment_ids, (lcm_prob_denominators*probs).astype(int)
+        treatment_ids, (lcm_prob_denominators*probs_np).astype(int)
     )
 
     # =========================================================================
