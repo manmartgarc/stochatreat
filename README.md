@@ -7,7 +7,7 @@ This is a Python module to employ block randomization using pandas. Mainly thoug
 ## Installation
 
 ```bash
-pip install stochatreat$$
+pip install stochatreat
 ```
 
 ## Usage
