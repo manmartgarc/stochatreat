@@ -7,15 +7,9 @@ Created on Wed Jul 10 13:20:03 2019
 ===============================================================================
 """
 import codecs
-import os
-import sys
 from pathlib import Path
 
 from setuptools import find_packages, setup
-
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist bdist_wheel')
-    sys.exit()
 
 
 def read(rel_path: str) -> str:
