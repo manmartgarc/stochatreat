@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a Python module to employ block randomization using pandas. Mainly thought with RCTs in mind, it also works for any other scenario in where you would like to randomly allocate treatment within *blocks* or *strata*.
+This is a Python tool to employ stratified randomization with uneven numbers in some strata using pandas. Mainly thought with RCTs in mind, it also works for any other scenario in where you would like to randomly allocate treatment within *blocks* or *strata*. The tool also supports having multiple treatments with different probability of assignment within each block or stratum.
 
 ## Installation
 
