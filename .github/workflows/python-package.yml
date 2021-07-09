@@ -35,7 +35,7 @@ jobs:
           flake8 --count --show-source --statistics stochatreat
       - name: Lint with mypy
         run: |
-          mypy cb_risk_api_chile/ --ignore-missing-imports
+          mypy stochatreat/ --ignore-missing-imports
       - name: Lint with pycodestyle
         run: |
           pycodestyle stochatreat
