@@ -1,6 +1,19 @@
+import sys
 from fractions import Fraction
-from math import lcm
 from typing import Iterable
+
+if sum(sys.version_info[:2]) < 12:
+    from functools import reduce
+    from math import gcd
+
+    def lcm(*args):
+        """
+        Helper function to compute the Lowest Common Multiple of a list of
+        integers
+        """
+        return reduce(lambda a, b: a * b // gcd(a, b), args)
+else:
+    from math import lcm
 
 
 def get_lcm_prob_denominators(probs: Iterable[float]):
