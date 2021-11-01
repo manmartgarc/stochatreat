@@ -4,7 +4,7 @@ from typing import Iterable
 
 if sum(sys.version_info[:2]) < 12:
     from functools import reduce
-    from math import gcd
+    from math import gcd  # type: ignore
 
     def lcm(*args):
         """
@@ -13,7 +13,7 @@ if sum(sys.version_info[:2]) < 12:
         """
         return reduce(lambda a, b: a * b // gcd(a, b), args)
 else:
-    from math import lcm
+    from math import lcm  # type: ignore
 
 
 def get_lcm_prob_denominators(probs: Iterable[float]):
