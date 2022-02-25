@@ -42,4 +42,4 @@ jobs:
           pycodestyle stochatreat
       - name: Test with pytest
         run: |
-          pytest
+          pytest -x

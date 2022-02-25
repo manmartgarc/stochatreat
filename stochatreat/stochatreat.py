@@ -160,7 +160,10 @@ def stochatreat(data: pd.DataFrame,
                 n=reduced_sizes[x.name],
                 random_state=random_state
             )
-        ).droplevel(level='stratum_id')
+        )
+
+        if len(reduced_sizes) != len(data):
+            data = data.droplevel(level='stratum_id')
 
         assert sum(reduced_sizes) == len(data)
 
