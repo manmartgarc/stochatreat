@@ -1,5 +1,7 @@
 # Stochatreat
 
+![Main Branch Tests](https://github.com/manmartgarc/stochatreat/actions/workflows/python-package.yml/badge.svg?branch=main)
+
 ## Introduction
 
 This is a Python tool to employ stratified randomization or sampling with uneven numbers in some strata using pandas. Mainly thought with RCTs in mind, it also works for any other scenario in where you would like to randomly allocate treatment within *blocks* or *strata*. The tool also supports having multiple treatments with different probability of assignment within each block or stratum.
