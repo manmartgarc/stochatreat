@@ -1,6 +1,6 @@
 # Stochatreat
 
-![Main Branch Tests](https://github.com/manmartgarc/stochatreat/actions/workflows/python-package.yml/badge.svg?branch=main)
+![Main Branch Tests](https://github.com/manmartgarc/stochatreat/actions/workflows/build.yml/badge.svg?branch=main)
 
 ## Introduction
 
