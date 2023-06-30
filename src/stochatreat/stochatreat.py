@@ -162,8 +162,7 @@ def stochatreat(
             )
         )
 
-        if len(reduced_sizes) != len(data):
-            data = data.droplevel(level="stratum_id")
+        data = data.droplevel(level="stratum_id")
 
         assert sum(reduced_sizes) == len(data)
 
