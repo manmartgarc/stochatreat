@@ -35,6 +35,7 @@ dependencies = ["pandas"]
 [project.optional-dependencies]
 dev = [
   "black",
+  "build",
   "bump2version",
   "mypy",
   "ruff",
