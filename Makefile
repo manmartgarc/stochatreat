@@ -1,3 +1,7 @@
+.DEFAULT_GOAL := all
+
+all: clean lint style test dist
+
 clean: clean-build clean-pyc clean-test
 
 clean-build:
@@ -19,10 +23,17 @@ clean-test:
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
+dist: clean
+	python -m build
+	ls -lth dist/
+
 lint: lint/ruff
 
 lint/ruff:
 	ruff src tests
+
+release: dist
+	twine upload dist/*
 
 style: style/black
 
