@@ -57,7 +57,7 @@ line-length = 79
 [tool.mypy]
 python_version = 3.8
 ignore_missing_imports = true
-packages = ["stochatreat"]
+packages = ["src"]
 
 [too.pytest.ini_options]
 addopts = [
