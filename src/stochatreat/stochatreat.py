@@ -245,9 +245,9 @@ def stochatreat(
     data = data[~data["fake"]].drop(columns=["fake"])
 
     # re-assign type - as it might have changed with the addition of fake data
-    data.loc[:, idx_col] = data[idx_col].astype(idx_col_type)
+    data[idx_col] = data[idx_col].astype(idx_col_type)
 
-    data.loc[:, "treat"] = data["treat"].astype(np.int64)
+    data["treat"] = data["treat"].astype(np.int64)
 
     assert data["treat"].isnull().sum() == 0
 
