@@ -12,8 +12,9 @@ def correct_params():
     params = {
         "probs": [0.1, 0.9],
         "treat": 2,
-        "data": pd.DataFrame(data={"id": np.arange(100),
-                                   "stratum": np.arange(100)}),
+        "data": pd.DataFrame(
+            data={"id": np.arange(100), "stratum": np.arange(100)}
+        ),
         "idx_col": "id",
     }
     return params
@@ -244,12 +245,10 @@ def treatments_dict_rand_index():
     data = pd.DataFrame(
         data={
             "id": np.random.permutation(100),
-            "stratum": [0] * 40 + [1] * 30 + [2] * 30
+            "stratum": [0] * 40 + [1] * 30 + [2] * 30,
         }
     )
-    data = data.set_index(
-        pd.Index(np.random.choice(300, 100, replace=False))
-    )
+    data = data.set_index(pd.Index(np.random.choice(300, 100, replace=False)))
     idx_col = "id"
 
     treatments = stochatreat(
@@ -271,11 +270,13 @@ def treatments_dict_rand_index():
     return treatments_dict
 
 
-standard_probs = [[0.1, 0.9],
-                  [1/3, 2/3],
-                  [0.5, 0.5],
-                  [2/3, 1/3],
-                  [0.9, 0.1]]
+standard_probs = [
+    [0.1, 0.9],
+    [1 / 3, 2 / 3],
+    [0.5, 0.5],
+    [2 / 3, 1 / 3],
+    [0.9, 0.1],
+]
 
 
 @pytest.mark.parametrize("probs", standard_probs)
@@ -342,7 +343,7 @@ def test_stochatreat_output_sample(correct_params):
         treats=correct_params["treat"],
         idx_col=correct_params["idx_col"],
         probs=correct_params["probs"],
-        size=size
+        size=size,
     )
 
     assert len(assignments) == size

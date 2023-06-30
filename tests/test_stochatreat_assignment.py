@@ -25,11 +25,13 @@ def df(request):
 
 
 # a set of treatment assignment probabilities to throw at many tests
-standard_probs = [[0.1, 0.9],
-                  [1/3, 2/3],
-                  [0.5, 0.5],
-                  [2/3, 1/3],
-                  [0.9, 0.1]]
+standard_probs = [
+    [0.1, 0.9],
+    [1 / 3, 2 / 3],
+    [0.5, 0.5],
+    [2 / 3, 1 / 3],
+    [0.9, 0.1],
+]
 
 # a set of stratum column combinations from the above df fixture to throw at
 # many tests
@@ -50,9 +52,8 @@ def df_no_misfits():
         data={
             "id": np.arange(N),
             "stratum": np.repeat(
-                np.arange(N / stratum_size),
-                repeats=stratum_size
-            )
+                np.arange(N / stratum_size), repeats=stratum_size
+            ),
         }
     )
 
@@ -70,6 +71,7 @@ probs_no_misfits = [
 # overall treatment assignment proportions
 ###############################################################################
 
+
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_no_probs(n_treats, stratum_cols, df):
@@ -83,10 +85,10 @@ def test_stochatreat_no_probs(n_treats, stratum_cols, df):
         stratum_cols=stratum_cols,
         treats=n_treats,
         idx_col="id",
-        random_state=42
+        random_state=42,
     )
 
-    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
+    treatment_shares = treats.groupby("treat")["id"].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
         treatment_shares, np.array([1 / n_treats] * n_treats), decimal=2
@@ -109,7 +111,7 @@ def test_stochatreat_probs(probs, stratum_cols, df):
         probs=probs,
         random_state=42,
     )
-    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
+    treatment_shares = treats.groupby("treat")["id"].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
         treatment_shares, np.array(probs), decimal=2
@@ -130,7 +132,7 @@ def test_stochatreat_no_misfits(probs, df_no_misfits):
         probs=probs,
         random_state=42,
     )
-    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
+    treatment_shares = treats.groupby("treat")["id"].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
         treatment_shares, np.array(probs), decimal=2
@@ -160,7 +162,7 @@ def test_stochatreat_only_misfits(probs):
         probs=probs,
         random_state=42,
     )
-    treatment_shares = treats.groupby('treat')['id'].size() / treats.shape[0]
+    treatment_shares = treats.groupby("treat")["id"].size() / treats.shape[0]
 
     np.testing.assert_almost_equal(
         treatment_shares, np.array(probs), decimal=2
@@ -171,21 +173,22 @@ def test_stochatreat_only_misfits(probs):
 # within-stratum treatment assignments
 ###############################################################################
 
+
 def get_within_strata_counts(treats):
     """Helper function to compute the treatment shares within strata"""
-    treatment_counts = (treats
-                        .groupby(["stratum_id", "treat"])[["id"]]
-                        .count()
-                        .rename(columns={"id": "treat_count"})
-                        .reset_index()
-                        )
+    treatment_counts = (
+        treats.groupby(["stratum_id", "treat"])[["id"]]
+        .count()
+        .rename(columns={"id": "treat_count"})
+        .reset_index()
+    )
 
-    stratum_counts = (treats
-                      .groupby(["stratum_id"])[["id"]]
-                      .count()
-                      .rename(columns={"id": "stratum_count"})
-                      .reset_index()
-                      )
+    stratum_counts = (
+        treats.groupby(["stratum_id"])[["id"]]
+        .count()
+        .rename(columns={"id": "stratum_count"})
+        .reset_index()
+    )
 
     counts = pd.merge(
         treatment_counts, stratum_counts, on="stratum_id", how="left"
@@ -206,9 +209,7 @@ def compute_count_diff(treats, probs):
     required_props = pd.DataFrame(
         {"required_prop": probs, "treat": range(len(probs))}
     )
-    comp = pd.merge(
-        counts, required_props, on="treat", how="left"
-    )
+    comp = pd.merge(counts, required_props, on="treat", how="left")
     comp["desired_counts"] = comp["stratum_count"] * comp["required_prop"]
 
     comp["count_diff"] = (comp["treat_count"] - comp["desired_counts"]).abs()
@@ -231,7 +232,7 @@ def test_stochatreat_within_strata_no_probs(n_treats, stratum_cols, df):
         stratum_cols=stratum_cols,
         treats=n_treats,
         idx_col="id",
-        random_state=42
+        random_state=42,
     )
     comp = compute_count_diff(treats, probs)
 
@@ -294,7 +295,7 @@ def test_stochatreat_global_strategy(probs, stratum_cols, df):
         idx_col="id",
         probs=probs,
         random_state=42,
-        misfit_strategy="global"
+        misfit_strategy="global",
     )
     comp = compute_count_diff(treats, probs)
 
@@ -323,9 +324,8 @@ def test_stochatreat_stratum_ids(df, misfit_strategy, stratum_cols):
 
     if misfit_strategy == "global":
         # depending on whether there are misfits
-        assert (
-            (n_unique_stratum_ids == n_unique_strata) or
-            (n_unique_stratum_ids - 1 == n_unique_strata)
+        assert (n_unique_stratum_ids == n_unique_strata) or (
+            n_unique_stratum_ids - 1 == n_unique_strata
         )
     else:
         assert n_unique_stratum_ids == n_unique_strata
@@ -351,9 +351,7 @@ def test_stochatreat_random_state(df, stratum_cols, misfit_strategy):
         )
         treats.append(treatments_i)
 
-    pd.testing.assert_series_equal(
-        treats[0]["treat"], treats[1]["treat"]
-    )
+    pd.testing.assert_series_equal(treats[0]["treat"], treats[1]["treat"])
 
 
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
@@ -379,6 +377,4 @@ def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
 
         df = df.sample(len(df), random_state=random_state)
 
-    pd.testing.assert_series_equal(
-        treats[0]["treat"], treats[1]["treat"]
-    )
+    pd.testing.assert_series_equal(treats[0]["treat"], treats[1]["treat"])
