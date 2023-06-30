@@ -23,8 +23,8 @@ def stochatreat(
     treats: int,
     probs: Optional[List[float]] = None,
     random_state: int = 42,
-    idx_col: str = None,
-    size: int = None,
+    idx_col: Optional[str] = None,
+    size: Optional[int] = None,
     misfit_strategy: str = "stratum",
 ) -> pd.DataFrame:
     """
