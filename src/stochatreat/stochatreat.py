@@ -14,7 +14,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
-from .utils import get_lcm_prob_denominators
+from stochatreat.utils import get_lcm_prob_denominators
 
 
 def stochatreat(
