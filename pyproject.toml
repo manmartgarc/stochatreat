@@ -39,8 +39,8 @@ dev = [
   "bump2version",
   "mypy",
   "ruff",
-  "coverage[toml]",
   "pytest",
+  "pytest-cov"
 ]
 
 [project.urls]
@@ -60,10 +60,10 @@ python_version = 3.8
 ignore_missing_imports = true
 packages = ["src"]
 
-[too.pytest.ini_options]
+[tool.pytest.ini_options]
 addopts = [
   "--cov=stochatreat",
-  "--cov-report=term-missing",
   "--cov-branch",
-  "duration=5"
+  "--cov-report=term-missing",
+  "--durations=5"
 ]
