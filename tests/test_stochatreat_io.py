@@ -12,14 +12,15 @@ def correct_params():
     params = {
         "probs": [0.1, 0.9],
         "treat": 2,
-        "data": pd.DataFrame(data={"id": np.arange(100),
-                                   "stratum": np.arange(100)}),
+        "data": pd.DataFrame(
+            data={"id": np.arange(100), "stratum": np.arange(100)}
+        ),
         "idx_col": "id",
     }
     return params
 
 
-def test_stochatreat_input_invalid_probs(correct_params):
+def test_input_invalid_probs(correct_params):
     """
     Tests that the function rejects probabilities that don't add up to one
     """
@@ -34,7 +35,7 @@ def test_stochatreat_input_invalid_probs(correct_params):
         )
 
 
-def test_stochatreat_input_more_treats_than_probs(correct_params):
+def test_input_more_treats_than_probs(correct_params):
     """
     Tests that the function raises an error for treatments and probs of
     different sizes
@@ -50,7 +51,7 @@ def test_stochatreat_input_more_treats_than_probs(correct_params):
         )
 
 
-def test_stochatreat_input_empty_data(correct_params):
+def test_input_empty_data(correct_params):
     """
     Tests that the function raises an error when an empty dataframe is passed
     """
@@ -65,7 +66,7 @@ def test_stochatreat_input_empty_data(correct_params):
         )
 
 
-def test_stochatreat_input_idx_col_str(correct_params):
+def test_input_idx_col_str(correct_params):
     """
     Tests that the function rejects an idx_col parameter that is not a
     string or None
@@ -81,7 +82,7 @@ def test_stochatreat_input_idx_col_str(correct_params):
         )
 
 
-def test_stochatreat_input_invalid_size(correct_params):
+def test_input_invalid_size(correct_params):
     """
     Tests that the function rejects a sampling size larger than the data count
     """
@@ -97,7 +98,7 @@ def test_stochatreat_input_invalid_size(correct_params):
         )
 
 
-def test_stochatreat_input_idx_col_unique(correct_params):
+def test_input_idx_col_unique(correct_params):
     """
     Tests that the function raises an error if the idx_col is not a primary key
     of the data
@@ -115,7 +116,7 @@ def test_stochatreat_input_idx_col_unique(correct_params):
         )
 
 
-def test_stochatreat_input_invalid_strategy(correct_params):
+def test_input_invalid_strategy(correct_params):
     """
     Tests that the function raises an error if an invalid strategy string is
     passed
@@ -161,7 +162,7 @@ def treatments_dict():
     return treatments_dict
 
 
-def test_stochatreat_output_type(treatments_dict):
+def test_output_type(treatments_dict):
     """
     Tests that the function's output is a pd DataFrame
     """
@@ -170,7 +171,7 @@ def test_stochatreat_output_type(treatments_dict):
     assert isinstance(treatments_df, pd.DataFrame), assert_msg
 
 
-def test_stochatreat_output_treat_col(treatments_dict):
+def test_output_treat_col(treatments_dict):
     """
     Tests that the function's output contains the `treat` column
     """
@@ -179,7 +180,7 @@ def test_stochatreat_output_treat_col(treatments_dict):
     assert "treat" in treatments_df.columns, assert_msg
 
 
-def test_stochatreat_output_treat_col_dtype(treatments_dict):
+def test_output_treat_col_dtype(treatments_dict):
     """
     Tests that the function's output's 'treat` column is an int column
     """
@@ -188,7 +189,7 @@ def test_stochatreat_output_treat_col_dtype(treatments_dict):
     assert treatments_df["treat"].dtype == np.int64, assert_msg
 
 
-def test_stochatreat_output_stratum_id_col(treatments_dict):
+def test_output_stratum_id_col(treatments_dict):
     """
     Tests that the function's output contains the `stratum_id`
     """
@@ -197,7 +198,7 @@ def test_stochatreat_output_stratum_id_col(treatments_dict):
     assert "stratum_id" in treatments_df.columns, assert_msg
 
 
-def test_stochatreat_output_stratum_id_col_dtype(treatments_dict):
+def test_output_stratum_id_col_dtype(treatments_dict):
     """
     Tests that the function's output's 'stratum_id` column is an int column
     """
@@ -206,7 +207,7 @@ def test_stochatreat_output_stratum_id_col_dtype(treatments_dict):
     assert treatments_df["stratum_id"].dtype == np.int64, assert_msg
 
 
-def test_stochatreat_output_idx_col(treatments_dict):
+def test_output_idx_col(treatments_dict):
     """
     Tests that the function's output's 'idx_col` column is the same type as the
     input's
@@ -218,7 +219,7 @@ def test_stochatreat_output_idx_col(treatments_dict):
     assert treatments_df[idx_col].dtype == data[idx_col].dtype, assert_msg
 
 
-def test_stochatreat_output_size(treatments_dict):
+def test_output_size(treatments_dict):
     """
     Tests that the function's output is of the right length
     """
@@ -228,7 +229,7 @@ def test_stochatreat_output_size(treatments_dict):
     assert len(treatments_df) == size, assert_msg
 
 
-def test_stochatreat_output_no_null_treats(treatments_dict):
+def test_output_no_null_treats(treatments_dict):
     """
     Tests that the function's output treatments are all non null
     """
@@ -244,12 +245,10 @@ def treatments_dict_rand_index():
     data = pd.DataFrame(
         data={
             "id": np.random.permutation(100),
-            "stratum": [0] * 40 + [1] * 30 + [2] * 30
+            "stratum": [0] * 40 + [1] * 30 + [2] * 30,
         }
     )
-    data = data.set_index(
-        pd.Index(np.random.choice(300, 100, replace=False))
-    )
+    data = data.set_index(pd.Index(np.random.choice(300, 100, replace=False)))
     idx_col = "id"
 
     treatments = stochatreat(
@@ -271,16 +270,18 @@ def treatments_dict_rand_index():
     return treatments_dict
 
 
-standard_probs = [[0.1, 0.9],
-                  [1/3, 2/3],
-                  [0.5, 0.5],
-                  [2/3, 1/3],
-                  [0.9, 0.1]]
+standard_probs = [
+    [0.1, 0.9],
+    [1 / 3, 2 / 3],
+    [0.5, 0.5],
+    [2 / 3, 1 / 3],
+    [0.9, 0.1],
+]
 
 
 @pytest.mark.parametrize("probs", standard_probs)
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
-def test_stochatreat_output_index_content_unchanged(
+def test_output_index_content_unchanged(
     treatments_dict_rand_index, probs, misfit_strategy
 ):
     """
@@ -304,7 +305,7 @@ def test_stochatreat_output_index_content_unchanged(
 
 @pytest.mark.parametrize("probs", standard_probs)
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
-def test_stochatreat_output_index_and_idx_col_correspondence(
+def test_output_index_and_idx_col_correspondence(
     treatments_dict_rand_index, probs, misfit_strategy
 ):
     """
@@ -331,7 +332,7 @@ def test_stochatreat_output_index_and_idx_col_correspondence(
     )
 
 
-def test_stochatreat_output_sample(correct_params):
+def test_output_sample(correct_params):
     """
     Tests that the function samples to the correct size
     """
@@ -342,7 +343,7 @@ def test_stochatreat_output_sample(correct_params):
         treats=correct_params["treat"],
         idx_col=correct_params["idx_col"],
         probs=correct_params["probs"],
-        size=size
+        size=size,
     )
 
     assert len(assignments) == size

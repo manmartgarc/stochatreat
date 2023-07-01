@@ -12,6 +12,7 @@ if sum(sys.version_info[:2]) < 12:
         integers
         """
         return reduce(lambda a, b: a * b // gcd(a, b), args)
+
 else:
     from math import lcm  # type: ignore
 

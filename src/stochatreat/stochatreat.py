@@ -14,18 +14,19 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
-from .utils import get_lcm_prob_denominators
+from stochatreat.utils import get_lcm_prob_denominators
 
 
-def stochatreat(data: pd.DataFrame,
-                stratum_cols: List[str],
-                treats: int,
-                probs: Optional[List[float]] = None,
-                random_state: int = 42,
-                idx_col: str = None,
-                size: int = None,
-                misfit_strategy: str = "stratum"
-                ) -> pd.DataFrame:
+def stochatreat(
+    data: pd.DataFrame,
+    stratum_cols: List[str],
+    treats: int,
+    probs: Optional[List[float]] = None,
+    random_state: int = 42,
+    idx_col: Optional[str] = None,
+    size: Optional[int] = None,
+    misfit_strategy: str = "stratum",
+) -> pd.DataFrame:
     """
     Takes a dataframe and an arbitrary number of treatments over an
     arbitrary number of strata.
@@ -98,42 +99,42 @@ def stochatreat(data: pd.DataFrame,
     elif probs is not None:
         probs_np = np.array(probs)
         if probs_np.sum() != 1:
-            raise ValueError('The probabilities must add up to 1')
+            raise ValueError("The probabilities must add up to 1")
 
-    assertmsg = 'length of treatments and probs must be the same'
+    assertmsg = "length of treatments and probs must be the same"
     assert len(treatment_ids) == len(probs_np), assertmsg
 
     # check if dataframe is empty
     if data.empty:
-        raise ValueError('Make sure that your dataframe is not empty.')
+        raise ValueError("Make sure that your dataframe is not empty.")
 
     # check length of data
     if len(data) < 2:
-        raise ValueError('Make sure your data has enough observations.')
+        raise ValueError("Make sure your data has enough observations.")
 
     # if idx_col parameter was not defined.
     if idx_col is None:
-        data = data.rename_axis('index', axis='index').reset_index()
-        idx_col = 'index'
+        data = data.rename_axis("index", axis="index").reset_index()
+        idx_col = "index"
     elif not isinstance(idx_col, str):
-        raise TypeError('idx_col has to be a string.')
+        raise TypeError("idx_col has to be a string.")
 
     # retrieve type to check and re-assign in the end
     idx_col_type = data[idx_col].dtype
 
     # check for unique identifiers
     if data[idx_col].duplicated(keep=False).sum() > 0:
-        raise ValueError('Values in idx_col are not unique.')
+        raise ValueError("Values in idx_col are not unique.")
 
     # if size is larger than sample universe
     if size is not None and size > len(data):
-        raise ValueError('Size argument is larger than the sample universe.')
+        raise ValueError("Size argument is larger than the sample universe.")
 
     # deal with multiple strata
     if isinstance(stratum_cols, str):
         stratum_cols = [stratum_cols]
 
-    if misfit_strategy not in ('stratum', 'global'):
+    if misfit_strategy not in ("stratum", "global"):
         raise ValueError("the strategy must be one of 'stratum' or 'global'")
 
     # sort data - useful to preserve correspondence between `idx_col` and
@@ -141,29 +142,27 @@ def stochatreat(data: pd.DataFrame,
     data = data.sort_values(by=idx_col)
 
     # combine strata cells - by assigning stratum ids
-    data['stratum_id'] = data.groupby(stratum_cols).ngroup()
+    data["stratum_id"] = data.groupby(stratum_cols).ngroup()
 
     # keep only ids and concatenated strata
-    data = data[[idx_col] + ['stratum_id']].copy()
+    data = data[[idx_col] + ["stratum_id"]].copy()
 
     # apply weights to each stratum if sampling is wanted
     if size is not None:
         size = int(size)
         # get sampling weights
-        strata_fracs = (data['stratum_id']
-                        .value_counts(normalize=True)
-                        .sort_index())
+        strata_fracs = (
+            data["stratum_id"].value_counts(normalize=True).sort_index()
+        )
         reduced_sizes = (strata_fracs * size).round().astype(int)
         # draw sample
-        data = data.groupby('stratum_id').apply(
+        data = data.groupby("stratum_id").apply(
             lambda x: x.sample(
-                n=reduced_sizes[x.name],
-                random_state=random_state
+                n=reduced_sizes[x.name], random_state=random_state
             )
         )
 
-        if len(reduced_sizes) != len(data):
-            data = data.droplevel(level='stratum_id')
+        data = data.droplevel(level="stratum_id")
 
         assert sum(reduced_sizes) == len(data)
 
@@ -182,26 +181,30 @@ def stochatreat(data: pd.DataFrame,
     # produce the assignment mask that we will use to achieve perfect
     # proportions
     treat_mask = np.repeat(
-        treatment_ids, (lcm_prob_denominators*probs_np).astype(int)
+        treatment_ids, (lcm_prob_denominators * probs_np).astype(int)
     )
 
     # =========================================================================
     # re-arrange strata
     # =========================================================================
 
-    if misfit_strategy == 'global':
+    if misfit_strategy == "global":
         # separate the global misfits
-        misfit_data = data.groupby('stratum_id').apply(
-            lambda x: x.sample(
-                n=(x.shape[0] % lcm_prob_denominators),
-                replace=False,
-                random_state=random_state
+        misfit_data = (
+            data.groupby("stratum_id")
+            .apply(
+                lambda x: x.sample(
+                    n=(x.shape[0] % lcm_prob_denominators),
+                    replace=False,
+                    random_state=random_state,
+                )
             )
-        ).droplevel(level='stratum_id')
+            .droplevel(level="stratum_id")
+        )
         good_form_data = data.drop(index=misfit_data.index)
 
         # assign the misfits their own stratum and concatenate
-        misfit_data.loc[:, 'stratum_id'] = np.Inf
+        misfit_data.loc[:, "stratum_id"] = np.Inf
         data = pd.concat([good_form_data, misfit_data])
 
     # =========================================================================
@@ -215,34 +218,36 @@ def stochatreat(data: pd.DataFrame,
 
     # add fake rows for each stratum so the total number can be divided by
     # `lcm_prob_denominators`
-    fake = pd.DataFrame({'fake': data.groupby('stratum_id').size()})
+    fake = pd.DataFrame({"fake": data.groupby("stratum_id").size()})
     fake = fake.reset_index()
-    fake.loc[:, 'fake'] = ((lcm_prob_denominators
-                            - fake['fake'] % lcm_prob_denominators)
-                           % lcm_prob_denominators)
-    fake_rep = pd.DataFrame(fake.values.repeat(fake['fake'], axis=0),
-                            columns=fake.columns)
+    fake.loc[:, "fake"] = (
+        lcm_prob_denominators - fake["fake"] % lcm_prob_denominators
+    ) % lcm_prob_denominators
+    fake_rep = pd.DataFrame(
+        fake.values.repeat(fake["fake"], axis=0), columns=fake.columns
+    )
 
-    data.loc[:, 'fake'] = False
-    fake_rep.loc[:, 'fake'] = True
+    data.loc[:, "fake"] = False
+    fake_rep.loc[:, "fake"] = True
 
-    data = pd.concat([data, fake_rep], sort=False).sort_values(by='stratum_id')
+    data = pd.concat([data, fake_rep], sort=False).sort_values(by="stratum_id")
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
-    permutations = np.argsort(R.rand(len(data) // lcm_prob_denominators,
-                                     lcm_prob_denominators),
-                              axis=1)
+    permutations = np.argsort(
+        R.rand(len(data) // lcm_prob_denominators, lcm_prob_denominators),
+        axis=1,
+    )
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
-    data.loc[:, 'treat'] = treat_mask[permutations].flatten(order='C')
-    data = data[~data['fake']].drop(columns=['fake'])
+    data.loc[:, "treat"] = treat_mask[permutations].flatten(order="C")
+    data = data[~data["fake"]].drop(columns=["fake"])
 
     # re-assign type - as it might have changed with the addition of fake data
-    data.loc[:, idx_col] = data[idx_col].astype(idx_col_type)
+    data[idx_col] = data[idx_col].astype(idx_col_type)
 
-    data.loc[:, 'treat'] = data['treat'].astype(np.int64)
+    data["treat"] = data["treat"].astype(np.int64)
 
-    assert data['treat'].isnull().sum() == 0
+    assert data["treat"].isnull().sum() == 0
 
     return data

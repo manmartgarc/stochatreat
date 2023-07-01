@@ -9,5 +9,5 @@ Created on Wed Jul 10 12:16:55 2019
 """
 from stochatreat.stochatreat import stochatreat  # noqa: F401
 
-__version__ = '0.0.14'
-__author__ = 'Manuel Martinez'
+__version__ = "0.0.14"
+__author__ = "Manuel Martinez"
