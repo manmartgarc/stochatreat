@@ -6,7 +6,7 @@ help: # Show help for each of the Makefile recipes
 	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
 
 
-all: clean lint style test dist # Runs all recipes.
+all: clean lint format test dist # Runs all recipes.
 
 clean: clean-build clean-pyc clean-test # Runs all clean recipes.
 
@@ -41,9 +41,9 @@ lint/ruff: # Runs ruff linting.
 release: dist # Releases a new version to PyPi.
 	twine upload dist/*
 
-style: style/black # Runs all style checks.
+format: format/black # Runs all format checks.
 
-style/black: # Runs black style checks.
+format/black: # Runs black format checks.
 	black --check src tests
 
 test: test/mypy test/pytest # Runs all tests.

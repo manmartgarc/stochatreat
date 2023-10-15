@@ -40,16 +40,26 @@ Source = "https://github.com/manmartgarc/stochatreat/"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["tests"]
 namespaces = false
+
+[tool.setuptools.package-data]
+stochatreat = ["py.typed"]
 
 [tool.black]
 line-length = 79
 
 [tool.mypy]
 python_version = 3.8
-packages = ["stochatreat"]
-install_types = true
-non_interactive = true
+files = ["src", "tests"]
+check_untyped_defs = true
+show_error_codes = true
+pretty = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 79
+target-version = "py38"
 
 [tool.pytest.ini_options]
 addopts = [

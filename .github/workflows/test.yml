@@ -30,9 +30,9 @@ jobs:
       - name: Lint with Ruff
         run: |
           make lint
-      - name: Check style with Black
+      - name: Check format with Black
         run: |
-          make style
+          make format
       - name: Type-checking with Mypy
         run: |
           make test/mypy
