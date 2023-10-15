@@ -156,9 +156,10 @@ def stochatreat(
         )
         reduced_sizes = (strata_fracs * size).round().astype(int)
         # draw sample
-        data = data.groupby("stratum_id").apply(
-            lambda x: x.sample(
-                n=reduced_sizes[x.name], random_state=random_state
+        data = data.groupby("stratum_id").apply(  # type: ignore
+            lambda x: x.sample(  # type: ignore
+                n=reduced_sizes[x.name],  # type: ignore
+                random_state=random_state,
             )
         )
 
