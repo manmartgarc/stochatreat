@@ -13,11 +13,9 @@ keywords = [
   "block randomization",
   "stratified randomization",
   "stratified random assignment",
-  "strata"
+  "strata",
 ]
-authors = [
-  { name = "Manuel Martinez", email = "manmartgarc@gmail.com" },
-]
+authors = [{ name = "Manuel Martinez", email = "manmartgarc@gmail.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -33,22 +31,14 @@ classifiers = [
 dependencies = ["pandas"]
 
 [project.optional-dependencies]
-dev = [
-  "black",
-  "build",
-  "bump2version",
-  "mypy",
-  "ruff",
-  "pytest",
-  "pytest-cov"
-]
+dev = ["black", "build", "bump2version", "mypy", "ruff", "pytest", "pytest-cov"]
 
 [project.urls]
 Documentation = "https://github.com/manmartgarc/stochatreat/blob/main/README.md"
 Issues = "https://github.com/manmartgarc/stochatreat/issues"
 Source = "https://github.com/manmartgarc/stochatreat/"
 
-[tools.setuptools.packages.find]
+[tool.setuptools.packages.find]
 where = ["src"]
 namespaces = false
 
@@ -57,13 +47,14 @@ line-length = 79
 
 [tool.mypy]
 python_version = 3.8
-ignore_missing_imports = true
-packages = ["src"]
+packages = ["stochatreat"]
+install_types = true
+non_interactive = true
 
 [tool.pytest.ini_options]
 addopts = [
   "--cov=stochatreat",
   "--cov-branch",
   "--cov-report=term-missing",
-  "--durations=5"
+  "--durations=5",
 ]
