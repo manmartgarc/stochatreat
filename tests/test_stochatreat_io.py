@@ -59,7 +59,7 @@ def test_input_empty_data(correct_params):
     with pytest.raises(ValueError):
         stochatreat(
             data=empty_data,
-            stratum_cols="stratum",
+            stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
@@ -77,7 +77,7 @@ def test_input_idx_col_str(correct_params):
             data=correct_params["data"],
             stratum_cols=["stratum"],
             treats=correct_params["treat"],
-            idx_col=idx_col_not_str,
+            idx_col=idx_col_not_str,  # type: ignore
             probs=correct_params["probs"],
         )
 
@@ -317,7 +317,7 @@ def test_output_index_and_idx_col_correspondence(
 
     treatments = stochatreat(
         data=data_with_rand_index,
-        stratum_cols="stratum",
+        stratum_cols=["stratum"],
         probs=probs,
         treats=2,
         idx_col=idx_col,
