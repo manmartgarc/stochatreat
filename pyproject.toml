@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stochatreat"
-version = "0.0.15"
+version = "0.0.16"
 description = 'Stratified random assignment using pandas'
 readme = "README.md"
 requires-python = ">=3.8"
