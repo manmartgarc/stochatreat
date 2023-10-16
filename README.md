@@ -119,6 +119,10 @@ nhood dummy
       1      35  68
 ```
 
+## Contributing
+
+If you'd like to contribute to the package, make sure you read the [contributing guide](https://github.com/manmartgarc/stochatreat/blob/main/.github/CONTRIBUTING.md).
+
 ## References
 
 - `stochatreat` is totally inspired by [Alvaro Carril's](https://acarril.github.io/) fantastic STATA package: [`randtreat`](https://acarril.github.io/posts/randtreat), which was published in [The Stata Journal](https://www.stata-journal.com/article.html?article=st0490).
