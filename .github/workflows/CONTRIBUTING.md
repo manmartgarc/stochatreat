@@ -1,3 +1,4 @@
+<!-- Inspired by https://github.com/burnash/gspread/blob/master/.github/CONTRIBUTING.md -->
 # Contributing Guide
 
 - Check the [GitHub Issues](https://github.com/manmartgarc/stochatreat/issues) for open issues that need attention.
@@ -53,13 +54,11 @@ make format lint
 
 ## Release
 
-New release system:
+1. Run `bump2version` to update the version number in the `setup.py` file and create a new tag:
 
-- Update version number in [`gspread/__init__.py`](../gspread/__init__.py).
-- Get changelog from drafting a new [GitHub release](https://github.com/burnash/gspread/releases/new) (do not publish, instead cancel.)
-- Add changelog to [`HISTORY.rst`](../HISTORY.rst).
-- Commit the changes as `Release vX.Y.Z` (do not push yet.)
-- Run `tox -e lint,py,build,doc` to check build/etc.
-- Push the commit. Wait for the CI to pass.
-- Add a tag `vX.Y.Z` to the commit locally. This will trigger a new release on PyPi, and make a release on GitHub.
-- View the release on [GitHub](https://github.com/burnash/gspread/releases) and [PyPi](https://pypi.org/project/gspread/)!
+  ```bash
+  bump2version [major|minor|patch]
+  ```
+
+2. Submit a PR.
+3. Once the PR is merged, run `make release` to create a new release in GitHub.
