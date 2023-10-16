@@ -54,11 +54,12 @@ make format lint
 
 ## Release
 
-1. Run `bump2version` to update the version number in the `setup.py` file and create a new tag:
+- Run `bump2version` to update the version number in the `setup.py` file and create a new tag:
 
   ```bash
   bump2version [major|minor|patch]
   ```
 
-2. Submit a PR.
-3. Once the PR is merged, run `make release` to create a new release in GitHub.
+- Commit the changes and push them to your fork.
+- Submit a PR.
+- Once the PR is merged, run `make release` to create a new release in GitHub.
