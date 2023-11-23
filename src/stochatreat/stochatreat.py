@@ -10,6 +10,7 @@ Created on Thursday, 8th November 2018 2:34:47 pm
 ===============================================================================
 """
 from typing import List, Optional
+from fractions import Fraction
 
 import numpy as np
 import pandas as pd
@@ -98,7 +99,8 @@ def stochatreat(
         probs_np = np.array([frac] * len(treatment_ids))
     elif probs is not None:
         probs_np = np.array(probs)
-        if probs_np.sum() != 1:
+        probs_sum = float(np.array([Fraction(f).limit_denominator() for f in probs]).sum())
+        if probs_sum != 1:
             raise ValueError("The probabilities must add up to 1")
 
     assertmsg = "length of treatments and probs must be the same"
