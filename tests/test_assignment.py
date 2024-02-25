@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from stochatreat.stochatreat import stochatreat
 from stochatreat.utils import get_lcm_prob_denominators
 
@@ -11,17 +12,15 @@ from stochatreat.utils import get_lcm_prob_denominators
 
 @pytest.fixture(params=[10_000, 100_000])
 def df(request):
-    N = request.param
-    df = pd.DataFrame(
+    n = request.param
+    return pd.DataFrame(
         data={
-            "id": np.arange(N),
-            "dummy": [1] * N,
-            "stratum1": np.random.randint(1, 100, size=N),
-            "stratum2": np.random.randint(0, 2, size=N),
+            "id": np.arange(n),
+            "dummy": [1] * n,
+            "stratum1": np.random.randint(1, 100, size=n),
+            "stratum2": np.random.randint(0, 2, size=n),
         }
     )
-
-    return df
 
 
 # a set of treatment assignment probabilities to throw at many tests
@@ -46,18 +45,16 @@ standard_stratum_cols = [
 # no misfits
 @pytest.fixture
 def df_no_misfits():
-    N = 1_000
+    n = 1_000
     stratum_size = 10
-    df = pd.DataFrame(
+    return pd.DataFrame(
         data={
-            "id": np.arange(N),
+            "id": np.arange(n),
             "stratum": np.repeat(
-                np.arange(N / stratum_size), repeats=stratum_size
+                np.arange(n / stratum_size), repeats=stratum_size
             ),
         }
     )
-
-    return df
 
 
 probs_no_misfits = [
@@ -147,11 +144,11 @@ def test_stochatreat_only_misfits(probs):
     of units is sufficiently large -- relies on the Law of Large Numbers, not
     deterministic
     """
-    N = 10_000
+    n = 10_000
     df = pd.DataFrame(
         data={
-            "id": np.arange(N),
-            "stratum": np.arange(N),
+            "id": np.arange(n),
+            "stratum": np.arange(n),
         }
     )
     treats = stochatreat(
@@ -190,11 +187,9 @@ def get_within_strata_counts(treats):
         .reset_index()
     )
 
-    counts = pd.merge(
+    return pd.merge(
         treatment_counts, stratum_counts, on="stratum_id", how="left"
     )
-
-    return counts
 
 
 def compute_count_diff(treats, probs):
@@ -324,9 +319,10 @@ def test_stochatreat_stratum_ids(df, misfit_strategy, stratum_cols):
 
     if misfit_strategy == "global":
         # depending on whether there are misfits
-        assert (n_unique_stratum_ids == n_unique_strata) or (
-            n_unique_stratum_ids - 1 == n_unique_strata
-        )
+        assert n_unique_strata in {
+            n_unique_stratum_ids,
+            n_unique_stratum_ids - 1,
+        }
     else:
         assert n_unique_stratum_ids == n_unique_strata
 

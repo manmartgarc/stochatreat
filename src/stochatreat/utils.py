@@ -2,7 +2,9 @@ import sys
 from fractions import Fraction
 from typing import Iterable
 
-if sum(sys.version_info[:2]) < 12:
+LCM_VERSION = 9
+
+if sys.version_info.minor < LCM_VERSION:
     from functools import reduce
     from math import gcd  # type: ignore
 
@@ -17,12 +19,11 @@ else:
     from math import lcm  # type: ignore
 
 
-def get_lcm_prob_denominators(probs: Iterable[float]):
+def get_lcm_prob_denominators(probs: Iterable[float]) -> int:
     """
     Helper function to compute the LCM of the denominators of the probabilities
     """
-    prob_denominators = [
+    prob_denominators = (
         Fraction(prob).limit_denominator().denominator for prob in probs
-    ]
-    lcm_prob_denominators = lcm(*prob_denominators)
-    return lcm_prob_denominators
+    )
+    return lcm(*prob_denominators)

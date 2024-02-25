@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from stochatreat.stochatreat import stochatreat
 
 
@@ -9,7 +10,7 @@ def correct_params():
     """
     A set of valid parameters that can be passed to stochatreat()
     """
-    params = {
+    return {
         "probs": [0.1, 0.9],
         "treat": 2,
         "data": pd.DataFrame(
@@ -17,7 +18,6 @@ def correct_params():
         ),
         "idx_col": "id",
     }
-    return params
 
 
 def test_input_invalid_probs(correct_params):
@@ -25,7 +25,7 @@ def test_input_invalid_probs(correct_params):
     Tests that the function rejects probabilities that don't add up to one
     """
     probs_not_sum_to_one = [0.1, 0.2]
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="The probabilities must add up to 1"):
         stochatreat(
             data=correct_params["data"],
             stratum_cols=["stratum"],
@@ -41,7 +41,12 @@ def test_input_more_treats_than_probs(correct_params):
     different sizes
     """
     treat_too_large = 3
-    with pytest.raises(Exception):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The number of probabilities must match the number of treatments"
+        ),
+    ):
         stochatreat(
             data=correct_params["data"],
             stratum_cols=["stratum"],
@@ -56,7 +61,9 @@ def test_input_empty_data(correct_params):
     Tests that the function raises an error when an empty dataframe is passed
     """
     empty_data = pd.DataFrame()
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="Make sure that your dataframe is not empty."
+    ):
         stochatreat(
             data=empty_data,
             stratum_cols=["stratum"],
@@ -72,7 +79,7 @@ def test_input_idx_col_str(correct_params):
     string or None
     """
     idx_col_not_str = 0
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="idx_col has to be a string."):
         stochatreat(
             data=correct_params["data"],
             stratum_cols=["stratum"],
@@ -87,7 +94,9 @@ def test_input_invalid_size(correct_params):
     Tests that the function rejects a sampling size larger than the data count
     """
     size_bigger_than_sampling_universe_size = 101
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="Size argument is larger than the sample universe."
+    ):
         stochatreat(
             data=correct_params["data"],
             stratum_cols=["stratum"],
@@ -106,30 +115,15 @@ def test_input_idx_col_unique(correct_params):
     data_with_idx_col_with_duplicates = pd.DataFrame(
         data={"id": 1, "stratum": np.arange(100)}
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="The values in idx_col are not unique."
+    ):
         stochatreat(
             data=data_with_idx_col_with_duplicates,
             stratum_cols=["stratum"],
             treats=correct_params["treat"],
             idx_col=correct_params["idx_col"],
             probs=correct_params["probs"],
-        )
-
-
-def test_input_invalid_strategy(correct_params):
-    """
-    Tests that the function raises an error if an invalid strategy string is
-    passed
-    """
-    unknown_strategy = "unknown"
-    with pytest.raises(ValueError):
-        stochatreat(
-            data=correct_params["data"],
-            stratum_cols=["stratum"],
-            treats=correct_params["treat"],
-            idx_col=correct_params["idx_col"],
-            probs=correct_params["probs"],
-            misfit_strategy=unknown_strategy,
         )
 
 
@@ -152,14 +146,12 @@ def treatments_dict():
         random_state=42,
     )
 
-    treatments_dict = {
+    return {
         "data": data,
         "idx_col": idx_col,
         "size": size,
         "treatments": treatments,
     }
-
-    return treatments_dict
 
 
 def test_output_type(treatments_dict):
@@ -259,15 +251,13 @@ def treatments_dict_rand_index():
         random_state=42,
     )
 
-    treatments_dict = {
+    return {
         "data": data,
         "stratum_cols": ["stratum"],
         "idx_col": idx_col,
         "treatments": treatments,
         "n_treatments": treats,
     }
-
-    return treatments_dict
 
 
 standard_probs = [

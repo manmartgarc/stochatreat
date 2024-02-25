@@ -20,28 +20,31 @@
 
 ## Setting up development environment
 
-You can install the development environment, i.e. all the dependencies required to run all tests and checks that are run when you submit a PR, by running. There are two main ways of doing this, one is to do it without cloning the repository, and the other is to clone the repository and then install the dependencies.
+You can install the development environment, i.e. all the dependencies required to run all tests and checks that are run when you submit a PR, by following these steps:
 
-### Without cloning the repository
-
-```bash
-pip install "stochatreat[dev] @ git+https://github.com/manmartgarc/stochatreat"
-```
-
-### Cloning the repository
-
-```bash
-git clone https://github.com/manmartgarc/stochatreat
-cd stochatreat
-pip install -e .[dev]
-```
+1. [Install](https://hatch.pypa.io/1.9/install/#installation) `hatch`.
+2. Clone the repository:
+    ```bash
+    git clone https://github.com/manmartgarc/stochatreat
+    cd stochatreat
+    ```
+3. Confirm `hatch` picked up the project:
+    ```bash
+    hatch status
+    ```
 
 ## Tests
 
-To run tests run:
+To run tests in the default environment:
 
 ```bash
-make test
+hatch run default:test
+```
+
+To run tests in all environments:
+
+```bash
+hatch run all:test
 ```
 
 ## Format
@@ -49,17 +52,22 @@ make test
 When submitting a PR, the CI will run `make format` and also `make lint` to check the format of the code. You can run this locally by running:
 
 ```bash
-make format lint
+hatch fmt
 ```
 
 ## Release
 
-- Run `bump2version` to update the version number in the `setup.py` file and create a new tag:
+- Run `hatch` to update the version number file and create a new tag:
 
   ```bash
-  bump2version [major|minor|patch]
+  hatch version [major|minor|patch]
   ```
 
 - Commit the changes and push them to your fork.
+- Tag the new version:
+    ```bash
+    git tag -a v0.0.0 -m "v0.0.0"
+    git push origin v0.0.0
+    ```
 - Submit a PR.
-- Once the PR is merged, run `make release` to create a new release in GitHub.
+- Once the PR is merged, run `hatch publish` to create a new release in PyPI.
