@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "stochatreat"
-version = "0.0.16"
+dynamic = ["version"]
 description = 'Stratified random assignment using pandas'
 readme = "README.md"
 requires-python = ">=3.8"
@@ -23,6 +23,7 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Operating System :: OS Independent",
@@ -30,41 +31,69 @@ classifiers = [
 ]
 dependencies = ["pandas"]
 
-[project.optional-dependencies]
-dev = ["black", "build", "bump2version", "mypy", "ruff", "pytest", "pytest-cov"]
-
 [project.urls]
 Documentation = "https://github.com/manmartgarc/stochatreat/blob/main/README.md"
 Issues = "https://github.com/manmartgarc/stochatreat/issues"
 Source = "https://github.com/manmartgarc/stochatreat/"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-exclude = ["tests"]
-namespaces = false
+[tool.hatch.version]
+path = "src/stochatreat/__about__.py"
 
-[tool.setuptools.package-data]
-stochatreat = ["py.typed"]
+[tool.hatch.envs.default]
+dependencies = [
+  "pytest",
+  "coverage[toml]>=6.5",
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report"
+]
 
-[tool.black]
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types]
+dependencies = ["mypy>=1.0.0"]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/stochatreat tests}"
+
+[tool.coverage.run]
+source_pkgs = ["stochatreat", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/stochatreat/__about__.py",
+]
+
+[tool.coverage.paths]
+stochatreat = ["src/stochatreat", "*/stochatreat/src/stochatreat"]
+tests = ["tests", "*/stochatreat/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHEKCING"
+]
+
+[tool.ruff]
 line-length = 79
 
+[tool.ruff.lint]
+ignore = [
+  "TRY003"
+]
+
 [tool.mypy]
-python_version = 3.8
-files = ["src", "tests"]
 check_untyped_defs = true
 show_error_codes = true
 pretty = true
 ignore_missing_imports = true
 
-[tool.ruff]
-line-length = 79
-target-version = "py38"
-
-[tool.pytest.ini_options]
-addopts = [
-  "--cov=stochatreat",
-  "--cov-branch",
-  "--cov-report=term-missing",
-  "--durations=5",
-]
