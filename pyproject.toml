@@ -1,69 +1,77 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "stochatreat"
-version = "0.0.15"
+dynamic = ["version"]
 description = 'Stratified random assignment using pandas'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 keywords = [
   "randomization",
   "block randomization",
   "stratified randomization",
   "stratified random assignment",
-  "strata"
+  "strata",
 ]
-authors = [
-  { name = "Manuel Martinez", email = "manmartgarc@gmail.com" },
-]
+authors = [{ name = "Manuel Martinez", email = "manmartgarc@gmail.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Operating System :: OS Independent",
   "License :: OSI Approved :: MIT License",
 ]
-dependencies = ["pandas"]
-
-[project.optional-dependencies]
-dev = [
-  "black",
-  "build",
-  "bump2version",
-  "mypy",
-  "ruff",
-  "pytest",
-  "pytest-cov"
-]
+dependencies = ["pandas>=2.2"]
 
 [project.urls]
 Documentation = "https://github.com/manmartgarc/stochatreat/blob/main/README.md"
 Issues = "https://github.com/manmartgarc/stochatreat/issues"
 Source = "https://github.com/manmartgarc/stochatreat/"
 
-[tools.setuptools.packages.find]
-where = ["src"]
-namespaces = false
+[tool.hatch.version]
+path = "src/stochatreat/__about__.py"
 
-[tool.black]
+[tool.hatch.envs.default]
+installer = "uv"
+dependencies = ["pytest", "pytest-cov", "pytest-xdist", "coverage[toml]>=6.5"]
+[tool.hatch.envs.default.scripts]
+test-cov = "pytest --cov=src/stochatreat tests/ --cov-report json -n auto"
+test = "test-cov --no-cov"
+
+[tool.hatch.envs.all]
+installer = "uv"
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types]
+dependencies = ["mypy>=1.0.0"]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive src/stochatreat tests/"
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHEKCING",
+  "__version__ = ",
+]
+
+[tool.ruff]
 line-length = 79
 
-[tool.mypy]
-python_version = 3.8
-ignore_missing_imports = true
-packages = ["src"]
+[tool.ruff.lint]
+ignore = ["TRY003"]
 
-[tool.pytest.ini_options]
-addopts = [
-  "--cov=stochatreat",
-  "--cov-branch",
-  "--cov-report=term-missing",
-  "--durations=5"
-]
+[tool.mypy]
+check_untyped_defs = true
+show_error_codes = true
+pretty = true
+ignore_missing_imports = true

@@ -1,32 +1,34 @@
-# -*- coding: utf-8 -*-
+"""Stratified random assignment of treatments to units.
+
+This module provides a function to assign treatments to units in a
+stratified manner. The function is designed to work with pandas
+dataframes and is able to handle multiple strata. There are also different
+strategies to deal with misfits (units that are left over after the
+stratified assignment procedure).
 """
-Created on Thursday, 8th November 2018 2:34:47 pm
-===============================================================================
-@filename:  stochatreat.py
-@author:    Manuel Martinez (manmartgarc@gmail.com)
-@project:   stochatreat
-@purpose:   Define a function that assign treatments over an arbitrary
-            number of strata.
-===============================================================================
-"""
-from typing import List, Optional
-from fractions import Fraction
+
+from __future__ import annotations
+
+import math
+from typing import Literal
 
 import numpy as np
 import pandas as pd
 
 from stochatreat.utils import get_lcm_prob_denominators
 
+MIN_ROW_N = 2
+
 
 def stochatreat(
     data: pd.DataFrame,
-    stratum_cols: List[str],
+    stratum_cols: list[str],
     treats: int,
-    probs: Optional[List[float]] = None,
+    probs: list[float] | None = None,
     random_state: int = 42,
-    idx_col: Optional[str] = None,
-    size: Optional[int] = None,
-    misfit_strategy: str = "stratum",
+    idx_col: str | None = None,
+    size: int | None = None,
+    misfit_strategy: Literal["stratum", "global"] = "stratum",
 ) -> pd.DataFrame:
     """
     Takes a dataframe and an arbitrary number of treatments over an
@@ -72,7 +74,7 @@ def stochatreat(
                                  treats=2,                # including control
                                  idx_col='myid',          # unique id column
                                  random_state=42)         # seed for rng
-        >>> data = data.merge(treats, how='left', on='myid')
+        >>> data = data.merge(treats, how="left", on="myid")
 
     Multiple strata:
         >>> treats = stochatreat(data=data,
@@ -81,10 +83,9 @@ def stochatreat(
                                  probs=[1/3, 2/3],
                                  idx_col='myid',
                                  random_state=42)
-        >>> data = data.merge(treats, how='left', on='myid')
+        >>> data = data.merge(treats, how="left", on="myid")
     """
-    # pylint: disable=invalid-name
-    R = np.random.RandomState(random_state)
+    rand = np.random.RandomState(random_state)
 
     # =========================================================================
     # do checks
@@ -99,45 +100,50 @@ def stochatreat(
         probs_np = np.array([frac] * len(treatment_ids))
     elif probs is not None:
         probs_np = np.array(probs)
-        probs_sum = float(np.array([Fraction(f).limit_denominator() for f in probs]).sum())
-        if probs_sum != 1:
-            raise ValueError("The probabilities must add up to 1")
-
-    assertmsg = "length of treatments and probs must be the same"
-    assert len(treatment_ids) == len(probs_np), assertmsg
+        if not math.isclose(probs_np.sum(), 1, rel_tol=1e-9):
+            error_msg = "The probabilities must add up to 1"
+            raise ValueError(error_msg)
+        if len(probs_np) != len(treatment_ids):
+            error_msg = (
+                "The number of probabilities must match the number of "
+                "treatments"
+            )
+            raise ValueError(error_msg)
 
     # check if dataframe is empty
     if data.empty:
-        raise ValueError("Make sure that your dataframe is not empty.")
+        error_msg = "Make sure that your dataframe is not empty."
+        raise ValueError(error_msg)
 
     # check length of data
-    if len(data) < 2:
-        raise ValueError("Make sure your data has enough observations.")
+    if len(data) < MIN_ROW_N:
+        error_msg = "Your dataframe at least needs to have 2 rows."
+        raise ValueError(error_msg)
 
     # if idx_col parameter was not defined.
     if idx_col is None:
         data = data.rename_axis("index", axis="index").reset_index()
         idx_col = "index"
     elif not isinstance(idx_col, str):
-        raise TypeError("idx_col has to be a string.")
+        error_msg = "idx_col has to be a string."
+        raise TypeError(error_msg)
 
     # retrieve type to check and re-assign in the end
     idx_col_type = data[idx_col].dtype
 
     # check for unique identifiers
     if data[idx_col].duplicated(keep=False).sum() > 0:
-        raise ValueError("Values in idx_col are not unique.")
+        error_msg = "The values in idx_col are not unique."
+        raise ValueError(error_msg)
 
     # if size is larger than sample universe
     if size is not None and size > len(data):
-        raise ValueError("Size argument is larger than the sample universe.")
+        error_msg = "Size argument is larger than the sample universe."
+        raise ValueError(error_msg)
 
     # deal with multiple strata
     if isinstance(stratum_cols, str):
         stratum_cols = [stratum_cols]
-
-    if misfit_strategy not in ("stratum", "global"):
-        raise ValueError("the strategy must be one of 'stratum' or 'global'")
 
     # sort data - useful to preserve correspondence between `idx_col` and
     # assignments
@@ -147,7 +153,7 @@ def stochatreat(
     data["stratum_id"] = data.groupby(stratum_cols).ngroup()
 
     # keep only ids and concatenated strata
-    data = data[[idx_col] + ["stratum_id"]].copy()
+    data = data[[idx_col, "stratum_id"]].copy()
 
     # apply weights to each stratum if sampling is wanted
     if size is not None:
@@ -161,12 +167,11 @@ def stochatreat(
         data = data.groupby("stratum_id").apply(
             lambda x: x.sample(
                 n=reduced_sizes[x.name], random_state=random_state
-            )
+            ),
+            include_groups=False,
         )
-
+        data["stratum_id"] = data.index.get_level_values(0)
         data = data.droplevel(level="stratum_id")
-
-        assert sum(reduced_sizes) == len(data)
 
     # Treatment assignment proceeds in two stages within each stratum:
     # 1. In as far as units can be neatly divided in the proportions given by
@@ -192,21 +197,20 @@ def stochatreat(
 
     if misfit_strategy == "global":
         # separate the global misfits
-        misfit_data = (
-            data.groupby("stratum_id")
-            .apply(
-                lambda x: x.sample(
-                    n=(x.shape[0] % lcm_prob_denominators),
-                    replace=False,
-                    random_state=random_state,
-                )
-            )
-            .droplevel(level="stratum_id")
+        misfit_data = data.groupby("stratum_id").apply(
+            lambda x: x.sample(
+                n=(x.shape[0] % lcm_prob_denominators),
+                replace=False,
+                random_state=random_state,
+            ),
+            include_groups=False,
         )
+        misfit_data["stratum_id"] = misfit_data.index.get_level_values(0)
+        misfit_data = misfit_data.droplevel(level="stratum_id")
         good_form_data = data.drop(index=misfit_data.index)
 
         # assign the misfits their own stratum and concatenate
-        misfit_data.loc[:, "stratum_id"] = np.Inf
+        misfit_data.loc[:, "stratum_id"] = -1
         data = pd.concat([good_form_data, misfit_data])
 
     # =========================================================================
@@ -228,28 +232,25 @@ def stochatreat(
     fake_rep = pd.DataFrame(
         fake.values.repeat(fake["fake"], axis=0), columns=fake.columns
     )
-
-    data.loc[:, "fake"] = False
-    fake_rep.loc[:, "fake"] = True
+    data.loc[:, "fake"] = 0
+    fake_rep.loc[:, "fake"] = 1
 
     data = pd.concat([data, fake_rep], sort=False).sort_values(by="stratum_id")
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
     permutations = np.argsort(
-        R.rand(len(data) // lcm_prob_denominators, lcm_prob_denominators),
+        rand.rand(len(data) // lcm_prob_denominators, lcm_prob_denominators),
         axis=1,
     )
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
     data.loc[:, "treat"] = treat_mask[permutations].flatten(order="C")
-    data = data[~data["fake"]].drop(columns=["fake"])
+    data = data[data["fake"] == 0].drop(columns=["fake"])
 
     # re-assign type - as it might have changed with the addition of fake data
     data[idx_col] = data[idx_col].astype(idx_col_type)
 
     data["treat"] = data["treat"].astype(np.int64)
-
-    assert data["treat"].isnull().sum() == 0
 
     return data

@@ -1,28 +1,13 @@
-import sys
+from collections.abc import Iterable
 from fractions import Fraction
-from typing import Iterable
-
-if sum(sys.version_info[:2]) < 12:
-    from functools import reduce
-    from math import gcd  # type: ignore
-
-    def lcm(*args):
-        """
-        Helper function to compute the Lowest Common Multiple of a list of
-        integers
-        """
-        return reduce(lambda a, b: a * b // gcd(a, b), args)
-
-else:
-    from math import lcm  # type: ignore
+from math import lcm
 
 
-def get_lcm_prob_denominators(probs: Iterable[float]):
+def get_lcm_prob_denominators(probs: Iterable[float]) -> int:
     """
     Helper function to compute the LCM of the denominators of the probabilities
     """
-    prob_denominators = [
+    prob_denominators = (
         Fraction(prob).limit_denominator().denominator for prob in probs
-    ]
-    lcm_prob_denominators = lcm(*prob_denominators)
-    return lcm_prob_denominators
+    )
+    return lcm(*prob_denominators)
