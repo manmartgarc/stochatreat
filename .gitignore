@@ -1,5 +1,6 @@
 .vscode
 *.ps1
+coverage.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

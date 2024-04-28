@@ -7,7 +7,7 @@ name = "stochatreat"
 dynamic = ["version"]
 description = 'Stratified random assignment using pandas'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 keywords = [
   "randomization",
   "block randomization",
@@ -19,7 +19,6 @@ authors = [{ name = "Manuel Martinez", email = "manmartgarc@gmail.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -29,7 +28,7 @@ classifiers = [
   "Operating System :: OS Independent",
   "License :: OSI Approved :: MIT License",
 ]
-dependencies = ["pandas"]
+dependencies = ["pandas>=2.2"]
 
 [project.urls]
 Documentation = "https://github.com/manmartgarc/stochatreat/blob/main/README.md"
@@ -43,10 +42,8 @@ path = "src/stochatreat/__about__.py"
 installer = "uv"
 dependencies = ["pytest", "pytest-cov", "pytest-xdist", "coverage[toml]>=6.5"]
 [tool.hatch.envs.default.scripts]
-test = "pytest -n auto {args:tests}"
-test-cov = "pytest -n auto --cov {args:tests}"
-cov-report = ["- coverage combine", "coverage report"]
-cov = ["test-cov", "cov-report"]
+test-cov = "pytest --cov=src/stochatreat tests/ --cov-report json -n auto"
+test = "test-cov --no-cov"
 
 [tool.hatch.envs.all]
 installer = "uv"
@@ -57,20 +54,15 @@ python = ["3.9", "3.10", "3.11", "3.12"]
 [tool.hatch.envs.types]
 dependencies = ["mypy>=1.0.0"]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/stochatreat tests}"
-
-[tool.coverage.run]
-source_pkgs = ["stochatreat", "tests"]
-branch = true
-parallel = true
-omit = ["src/stochatreat/__about__.py"]
-
-[tool.coverage.paths]
-stochatreat = ["src/stochatreat", "*/stochatreat/src/stochatreat"]
-tests = ["tests", "*/stochatreat/tests"]
+check = "mypy --install-types --non-interactive src/stochatreat tests/"
 
 [tool.coverage.report]
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHEKCING"]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHEKCING",
+  "__version__ = ",
+]
 
 [tool.ruff]
 line-length = 79
