@@ -1,6 +1,3 @@
-"""
-
-"""
 from __future__ import annotations
 
 from typing import Literal
@@ -160,9 +157,10 @@ def stochatreat(
         data = data.groupby("stratum_id").apply(
             lambda x: x.sample(
                 n=reduced_sizes[x.name], random_state=random_state
-            )
+            ),
+            include_groups=False,
         )
-
+        data["stratum_id"] = data.index.get_level_values(0)
         data = data.droplevel(level="stratum_id")
 
     # Treatment assignment proceeds in two stages within each stratum:
@@ -189,21 +187,20 @@ def stochatreat(
 
     if misfit_strategy == "global":
         # separate the global misfits
-        misfit_data = (
-            data.groupby("stratum_id")
-            .apply(
-                lambda x: x.sample(
-                    n=(x.shape[0] % lcm_prob_denominators),
-                    replace=False,
-                    random_state=random_state,
-                )
-            )
-            .droplevel(level="stratum_id")
+        misfit_data = data.groupby("stratum_id").apply(
+            lambda x: x.sample(
+                n=(x.shape[0] % lcm_prob_denominators),
+                replace=False,
+                random_state=random_state,
+            ),
+            include_groups=False,
         )
+        misfit_data["stratum_id"] = misfit_data.index.get_level_values(0)
+        misfit_data = misfit_data.droplevel(level="stratum_id")
         good_form_data = data.drop(index=misfit_data.index)
 
         # assign the misfits their own stratum and concatenate
-        misfit_data.loc[:, "stratum_id"] = np.Inf
+        misfit_data.loc[:, "stratum_id"] = -1
         data = pd.concat([good_form_data, misfit_data])
 
     # =========================================================================
@@ -225,9 +222,8 @@ def stochatreat(
     fake_rep = pd.DataFrame(
         fake.values.repeat(fake["fake"], axis=0), columns=fake.columns
     )
-
-    data.loc[:, "fake"] = False
-    fake_rep.loc[:, "fake"] = True
+    data.loc[:, "fake"] = 0
+    fake_rep.loc[:, "fake"] = 1
 
     data = pd.concat([data, fake_rep], sort=False).sort_values(by="stratum_id")
 
@@ -240,7 +236,7 @@ def stochatreat(
     # lookup treatment name for permutations. This works because we flatten
     # row-major style, i.e. one row after another.
     data.loc[:, "treat"] = treat_mask[permutations].flatten(order="C")
-    data = data[~data["fake"]].drop(columns=["fake"])
+    data = data[data["fake"] == 0].drop(columns=["fake"])
 
     # re-assign type - as it might have changed with the addition of fake data
     data[idx_col] = data[idx_col].astype(idx_col_type)
