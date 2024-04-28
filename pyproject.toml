@@ -44,7 +44,7 @@ installer = "uv"
 dependencies = ["pytest", "pytest-cov", "pytest-xdist", "coverage[toml]>=6.5"]
 [tool.hatch.envs.default.scripts]
 test = "pytest -n auto {args:tests}"
-test-cov = "pytest -n auto --cov {args:tests}"
+test-cov = "pytest --cov={args:tests} --cov-report json -n auto"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
 
@@ -57,7 +57,7 @@ python = ["3.9", "3.10", "3.11", "3.12"]
 [tool.hatch.envs.types]
 dependencies = ["mypy>=1.0.0"]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/stochatreat tests}"
+check = "mypy --install-types --non-interactive {args:stochatreat}"
 
 [tool.coverage.run]
 source_pkgs = ["stochatreat", "tests"]
@@ -66,8 +66,8 @@ parallel = true
 omit = ["src/stochatreat/__about__.py"]
 
 [tool.coverage.paths]
-stochatreat = ["src/stochatreat", "*/stochatreat/src/stochatreat"]
-tests = ["tests", "*/stochatreat/tests"]
+stochatreat = ["src/stochatreat", "*/stochatreat/src/stochatreat", "tests"]
+tests = ["tests/"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHEKCING"]
