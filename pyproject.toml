@@ -57,7 +57,12 @@ dependencies = ["mypy>=1.0.0"]
 check = "mypy --install-types --non-interactive src/stochatreat tests/"
 
 [tool.coverage.report]
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHEKCING"]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHEKCING",
+  "__version__ = ",
+]
 
 [tool.ruff]
 line-length = 79
