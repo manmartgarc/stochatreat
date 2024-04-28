@@ -240,7 +240,9 @@ def treatments_dict_rand_index():
             "stratum": [0] * 40 + [1] * 30 + [2] * 30,
         }
     )
-    data = data.set_index(pd.Index(np.random.choice(300, 100, replace=False)))
+    data = data.set_index(
+        pd.Index(np.random.choice(300, 100, replace=False)).astype(np.int64)
+    )
     idx_col = "id"
 
     treatments = stochatreat(
