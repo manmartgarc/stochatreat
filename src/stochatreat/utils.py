@@ -1,6 +1,6 @@
 import sys
+from collections.abc import Iterable
 from fractions import Fraction
-from typing import Iterable
 
 LCM_VERSION = 9
 
