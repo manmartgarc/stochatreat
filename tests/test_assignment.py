@@ -30,6 +30,7 @@ standard_probs = [
     [0.5, 0.5],
     [2 / 3, 1 / 3],
     [0.9, 0.1],
+    [1 / 2, 1 / 3, 1 / 6],
 ]
 
 # a set of stratum column combinations from the above df fixture to throw at

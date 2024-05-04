@@ -1,5 +1,15 @@
+"""Stratified random assignment of treatments to units.
+
+This module provides a function to assign treatments to units in a
+stratified manner. The function is designed to work with pandas
+dataframes and is able to handle multiple strata. There are also different
+strategies to deal with misfits (units that are left over after the
+stratified assignment procedure).
+"""
+
 from __future__ import annotations
 
+import math
 from typing import Literal
 
 import numpy as np
@@ -90,7 +100,7 @@ def stochatreat(
         probs_np = np.array([frac] * len(treatment_ids))
     elif probs is not None:
         probs_np = np.array(probs)
-        if probs_np.sum() != 1:
+        if not math.isclose(probs_np.sum(), 1, rel_tol=1e-9):
             error_msg = "The probabilities must add up to 1"
             raise ValueError(error_msg)
         if len(probs_np) != len(treatment_ids):
