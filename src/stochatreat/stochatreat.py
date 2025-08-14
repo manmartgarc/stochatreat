@@ -232,6 +232,10 @@ def stochatreat(
     fake_rep = pd.DataFrame(
         fake.values.repeat(fake["fake"], axis=0), columns=fake.columns
     )
+    # Before we add fake data, protect the idx_col values from being upcasted
+    # to a different type and mutating the original data due to the
+    # introduction of nulls. We will restore the original type later.
+    data[idx_col] = data[idx_col].astype(object)
     data.loc[:, "fake"] = 0
     fake_rep.loc[:, "fake"] = 1
 
@@ -248,7 +252,7 @@ def stochatreat(
     data.loc[:, "treat"] = treat_mask[permutations].flatten(order="C")
     data = data[data["fake"] == 0].drop(columns=["fake"])
 
-    # re-assign type - as it might have changed with the addition of fake data
+    # re-assign type now that we have removed the fake data
     data[idx_col] = data[idx_col].astype(idx_col_type)
 
     data["treat"] = data["treat"].astype(np.int64)
