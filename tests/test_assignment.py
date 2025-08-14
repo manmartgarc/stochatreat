@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -375,3 +377,32 @@ def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
         df = df.sample(len(df), random_state=random_state)
 
     pd.testing.assert_series_equal(treats[0]["treat"], treats[1]["treat"])
+
+
+###############################################################################
+# Miscellaneous tests
+###############################################################################
+
+
+def test_stochatreat_categorical_strata_warning():
+    """
+    Verify no deprecation warning is raised when the stratum column is a
+    categorical variable
+    """
+    data = pd.DataFrame(
+        {
+            "id": [1, 2],
+            "stratum": pd.Categorical(["a", "b"], categories=["a", "b"]),
+        }
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        stochatreat(
+            data=data,
+            idx_col="id",
+            stratum_cols=["stratum"],
+            treats=2,
+            probs=[1 / 2] * 2,
+            random_state=42,
+        )
