@@ -150,7 +150,7 @@ def stochatreat(
     data = data.sort_values(by=idx_col)
 
     # combine strata cells - by assigning stratum ids
-    data["stratum_id"] = data.groupby(stratum_cols).ngroup()
+    data["stratum_id"] = data.groupby(stratum_cols, observed=False).ngroup()
 
     # keep only ids and concatenated strata
     data = data[[idx_col, "stratum_id"]].copy()
