@@ -5,6 +5,9 @@ on:
     types: [closed]
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -72,6 +75,15 @@ jobs:
 
           printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install hatch
+        run: |
+          python -m pip install hatch
+
       - name: Action | Semantic Version Release
         uses: python-semantic-release/python-semantic-release@v10
         with:
@@ -92,10 +104,3 @@ jobs:
           name: distribution-artifacts
           path: dist
           if-no-files-found: error
-
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist
-          print-hash: true
-          verbose: true

@@ -79,3 +79,4 @@ ignore_missing_imports = true
 [tool.semantic_release]
 version_variable = "src/stochatreat/__about__.py:__version__"
 allow_zero_version = true
+build_command = "hatch build"
