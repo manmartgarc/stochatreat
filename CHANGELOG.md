@@ -2,6 +2,48 @@
 
 <!-- version list -->
 
+## v0.1.0 (2025-08-16)
+
+### Bug Fixes
+
+- Badge and pypa version
+  ([`a879892`](https://github.com/manmartgarc/stochatreat/commit/a8798922cd5032f41061804bb73ab18be6fe3407))
+
+- Release permissions and build
+  ([`1805da8`](https://github.com/manmartgarc/stochatreat/commit/1805da8bc6cb6f0988da8d6bb5c6a027412e890c))
+
+- Unit test setup
+  ([`309d305`](https://github.com/manmartgarc/stochatreat/commit/309d3055769d1560d292b2a1d341801f06080fc2))
+
+### Build System
+
+- Add pypi publishing
+  ([`355e239`](https://github.com/manmartgarc/stochatreat/commit/355e2396d9abd4fafa230bfce2604adcfba12725))
+
+- Build w/ hatch separately
+  ([`42aca56`](https://github.com/manmartgarc/stochatreat/commit/42aca56dba952c94487218e93d6f07e2024c80fb))
+
+- Remove build_command
+  ([`859c24d`](https://github.com/manmartgarc/stochatreat/commit/859c24df72976493e19e8fca084a9fa6503d7239))
+
+- **deps**: Bump codecov/codecov-action from 4 to 5
+  ([`eff5e84`](https://github.com/manmartgarc/stochatreat/commit/eff5e84b4c55183aeb8a4368f2635a3d05679e98))
+
+### Chores
+
+- Remove unused id
+  ([`cfd6899`](https://github.com/manmartgarc/stochatreat/commit/cfd6899411ce78aec54fe56c09305801bc748504))
+
+### Code Style
+
+- Run hatch fmt
+  ([`f7336aa`](https://github.com/manmartgarc/stochatreat/commit/f7336aa2a74f2917f8135fa28505a7ae19c92ef3))
+
+### Features
+
+- Automate CI/CD to pypi
+  ([`74186f0`](https://github.com/manmartgarc/stochatreat/commit/74186f025fc98b8977b9bc04e5c46b2cf7dd5970))
+
 
 ## v0.0.20 (2024-05-03)
 
