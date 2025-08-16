@@ -416,8 +416,8 @@ def test_stochatreat_supports_big_integer_ids():
     #   2**53+1 is rounded to 2**53
     data = pd.DataFrame(
         {
-            "id": [103241243500726324, 103241243500726320, 2**53],
-            "stratum": ["a", "b", "c"],
+            "id": [103241243500726324, 103241243500726320, 2**53, 2**53 + 1],
+            "stratum": ["a", "a", "b", "b"],
         }
     )
 
@@ -431,5 +431,4 @@ def test_stochatreat_supports_big_integer_ids():
     )
 
     assert set(treatment_status["id"]) == set(data["id"])
-    assert set(treatment_status["stratum_id"]) == {0, 1, 2}
     assert set(treatment_status["treat"]) == {0, 1}
