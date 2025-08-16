@@ -75,3 +75,7 @@ check_untyped_defs = true
 show_error_codes = true
 pretty = true
 ignore_missing_imports = true
+
+[tool.semantic_release]
+version_variable = "src/stochatreat/__about__.py:__version__"
+allow_zero_version = true

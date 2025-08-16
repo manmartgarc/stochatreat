@@ -2,13 +2,6 @@
 
 <!-- version list -->
 
-## v1.0.0 (2025-08-16)
-
-### Build System
-
-- **deps**: Bump codecov/codecov-action from 4 to 5
-  ([`eff5e84`](https://github.com/manmartgarc/stochatreat/commit/eff5e84b4c55183aeb8a4368f2635a3d05679e98))
-
 
 ## v0.0.20 (2024-05-03)
 
