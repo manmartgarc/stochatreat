@@ -407,27 +407,29 @@ def test_stochatreat_categorical_strata_warning():
             random_state=42,
         )
 
+
 def test_stochatreat_supports_big_integer_ids():
     """Verify that we can handle bigint ids"""
     # If we allow pandas to silently upcast, certain dtypes that convert to
     # float64 may lose precision, resulting in wrong or missing assignments:
     #   103241243500726324 is rounded to 103241243500726320
     #   2**53+1 is rounded to 2**53
-    data = pd.DataFrame({
-        'id': [103241243500726324, 103241243500726320, 2**53],
-        'stratum': ['a', 'b', 'c']
-    })
+    data = pd.DataFrame(
+        {
+            "id": [103241243500726324, 103241243500726320, 2**53],
+            "stratum": ["a", "b", "c"],
+        }
+    )
 
     treatment_status = stochatreat(
         data=data,
-        idx_col='id',
-        stratum_cols=['stratum'],
+        idx_col="id",
+        stratum_cols=["stratum"],
         treats=2,
         probs=[1 / 2] * 2,
         random_state=42,
     )
-    print(treatment_status)
 
-    assert set(treatment_status['id']) == set(data['id'])
-    assert set(treatment_status['stratum_id']) == {0, 1, 2}
-    assert set(treatment_status['treat']) == {0, 1}
+    assert set(treatment_status["id"]) == set(data["id"])
+    assert set(treatment_status["stratum_id"]) == {0, 1, 2}
+    assert set(treatment_status["treat"]) == {0, 1}
