@@ -43,3 +43,14 @@ jobs:
           fail-on-error: true
           parallel: true
           flag-name: python-${{ matrix.python-version }}
+
+  finalize-coveralls:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
+          allow-empty: true
