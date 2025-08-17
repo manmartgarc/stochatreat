@@ -486,7 +486,7 @@ def test_invalid_misfit_strategy():
             treats=2,
             idx_col="id",
             probs=[0.5, 0.5],
-            misfit_strategy="not_a_strategy",
+            misfit_strategy="not_a_strategy",  # type: ignore
         )
 
 
