@@ -1,4 +1,4 @@
-name: bump-and-release
+name: release-and-publish
 
 on:
   pull_request:
@@ -18,6 +18,7 @@ jobs:
       cancel-in-progress: false
     outputs:
       released: ${{ steps.psr-release.outputs.released }}
+      releasetag: ${{ steps.psr-release.outputs.tag }}
 
     permissions:
       contents: write
@@ -88,8 +89,16 @@ jobs:
           build: false
 
       - name: Set output released
-        run: echo "released=${{ steps.psr-release.outputs.released }}" >> $GITHUB_ENV
+        run: |
+          echo "released=${{ steps.psr-release.outputs.released }}" >> $GITHUB_ENV
+          echo "releasetag=${{ steps.psr-release.outputs.tag }}" >> $GITHUB_ENV
 
+  build:
+    needs: release
+    runs-on: ubuntu-latest
+    if: needs.release.outputs.released == 'true'
+    steps:
+      - uses: actions/checkout@v5
       - name: Action | Install Hatch
         uses: pypa/hatch@install
 
@@ -99,10 +108,9 @@ jobs:
 
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v10
-        if: steps.psr-release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.psr-release.outputs.tag }}
+          tag: ${{ needs.release.outputs.releasetag }}
 
       - name: Upload | Distribution Artifacts
         uses: actions/upload-artifact@v4
@@ -111,12 +119,11 @@ jobs:
           path: dist
           if-no-files-found: error
 
-  deploy:
+  publish:
     # 1. Separate out the deploy step from the publish step to run each step at
     #    the least amount of token privilege
-    needs: release
+    needs: build
     runs-on: ubuntu-latest
-    if: needs.release.outputs.released == 'true'
     permissions:
       contents: read
       id-token: write
@@ -135,9 +142,10 @@ jobs:
           print-hash: true
           verbose: true
 
-  # we do this so that codecov reports are associated with the release
+  # we do this so that codecov reports are associated with the release if there's one
   test:
     needs: release
+    if: needs.release.outputs.released == 'true'
     uses: ./.github/workflows/test.yml
     with:
       branch: ${{ github.ref_name }}
