@@ -88,7 +88,8 @@ def stochatreat(
     """
     # we also do a runtime check for the naughty folks that don't use typing
     if misfit_strategy not in get_args(MisfitStrategy):
-        raise ValueError("misfit_strategy must be 'stratum' or 'global'.")
+        msg = f"misfit_strategy must be one of {get_args(MisfitStrategy)}."
+        raise ValueError(msg)
     rand = np.random.RandomState(random_state)
 
     # =========================================================================

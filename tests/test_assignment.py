@@ -464,7 +464,9 @@ def test_output_column_order():
 def test_duplicate_idx_col():
     """Test error when idx_col contains duplicates"""
     df = pd.DataFrame({"id": [1, 1, 2], "stratum": ["a", "a", "b"]})
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="The values in idx_col are not unique"
+    ):
         stochatreat(
             data=df,
             stratum_cols=["stratum"],
@@ -477,7 +479,7 @@ def test_duplicate_idx_col():
 def test_invalid_misfit_strategy():
     """Test error for invalid misfit_strategy"""
     df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="misfit_strategy must be one of"):
         stochatreat(
             data=df,
             stratum_cols=["stratum"],
@@ -491,10 +493,10 @@ def test_invalid_misfit_strategy():
 def test_idx_col_uuid_and_float():
     """Test with UUIDs and floats as idx_col"""
     import uuid
-    df = pd.DataFrame({
-        "id": [uuid.uuid4(), uuid.uuid4()],
-        "stratum": ["a", "b"]
-    })
+
+    df = pd.DataFrame(
+        {"id": [uuid.uuid4(), uuid.uuid4()], "stratum": ["a", "b"]}
+    )
     result = stochatreat(
         data=df,
         stratum_cols=["stratum"],
