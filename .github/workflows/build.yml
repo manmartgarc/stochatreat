@@ -34,10 +34,9 @@ jobs:
           hatch run types:check
       - name: Run tests with pytest
         run: |
-          hatch run +py=${{ matrix.python-version }} all:test-cov
+          hatch run +py=${{ matrix.python-version }} all:test-cov -- junitxml=junit-${{ matrix.python-version }}.xml -o -junit_family=legacy
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
         with:
-          fail_ci_if_error: true
-          files: coverage.json
           token: ${{ secrets.CODECOV_TOKEN }}
