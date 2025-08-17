@@ -55,6 +55,9 @@ check = "mypy --install-types --non-interactive src/stochatreat tests/"
 
 [tool.coverage.run]
 branch = true
+omit = [
+  "tests/*",
+]
 
 [tool.coverage.report]
 exclude_lines = [
