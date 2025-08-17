@@ -1,4 +1,4 @@
-name: Bump the version and create a release
+name: bump-and-release
 
 on:
   pull_request:
@@ -134,3 +134,12 @@ jobs:
           packages-dir: dist
           print-hash: true
           verbose: true
+
+  # we do this so that codecov reports are associated with the release
+  test:
+    needs: release
+    uses: ./.github/workflows/test.yml
+    with:
+      branch: ${{ github.ref_name }}
+
+

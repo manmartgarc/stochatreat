@@ -1,16 +1,21 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Build and Test
+name: typing-and-tests
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,9 +32,19 @@ jobs:
           hatch run types:check
       - name: Run tests with pytest
         run: |
-          hatch run +py=${{ matrix.python-version }} all:test-cov -o junit_family=legacy --junitxml=junit-${{ matrix.python-version }}.xml
+          hatch run +py=${{ matrix.python-version }} all:test-cov \
+          --cov-report=xml:coverage-${{ matrix.python-version }} \
+          -o junit_family=legacy \
+          --junitxml=junit${{ matrix.python-version }}.xml
       - name: Upload coverage reports to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage-${{ matrix.python-version }}.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload test analytics
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: junit${{ matrix.python-version }}.xml
