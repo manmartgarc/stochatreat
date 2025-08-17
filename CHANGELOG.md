@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.1.2 (2025-08-17)
+
+### Bug Fixes
+
+- Validate misfit strategy and edge case tests
+  ([`fe96d6a`](https://github.com/manmartgarc/stochatreat/commit/fe96d6a1a030accdd0d60707dad2898e0e57f42e))
+
+- Validate misfit_strategy argument and improve Python version support
+  ([`72aa17c`](https://github.com/manmartgarc/stochatreat/commit/72aa17cdb3821847faf06d6960364de394cf2d81))
+
+
 ## v0.1.1 (2025-08-17)
 
 ### Bug Fixes
