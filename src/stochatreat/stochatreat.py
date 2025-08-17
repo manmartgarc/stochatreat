@@ -10,7 +10,7 @@ stratified assignment procedure).
 from __future__ import annotations
 
 import math
-from typing import Literal
+from typing import Literal, get_args
 
 import numpy as np
 import pandas as pd
@@ -18,6 +18,7 @@ import pandas as pd
 from stochatreat.utils import get_lcm_prob_denominators
 
 MIN_ROW_N = 2
+MisfitStrategy = Literal["stratum", "global"]
 
 
 def stochatreat(
@@ -28,7 +29,7 @@ def stochatreat(
     random_state: int = 42,
     idx_col: str | None = None,
     size: int | None = None,
-    misfit_strategy: Literal["stratum", "global"] = "stratum",
+    misfit_strategy: MisfitStrategy = "stratum",
 ) -> pd.DataFrame:
     """
     Takes a dataframe and an arbitrary number of treatments over an
@@ -85,6 +86,9 @@ def stochatreat(
                                  random_state=42)
         >>> data = data.merge(treats, how="left", on="myid")
     """
+    # we also do a runtime check for the naughty folks that don't use typing
+    if misfit_strategy not in get_args(MisfitStrategy):
+        raise ValueError("misfit_strategy must be 'stratum' or 'global'.")
     rand = np.random.RandomState(random_state)
 
     # =========================================================================

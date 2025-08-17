@@ -7,7 +7,7 @@ name = "stochatreat"
 dynamic = ["version"]
 description = 'Stratified random assignment using pandas'
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = [
   "randomization",
   "block randomization",
@@ -19,10 +19,10 @@ authors = [{ name = "Manuel Martinez", email = "manmartgarc@gmail.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Operating System :: OS Independent",

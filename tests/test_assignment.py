@@ -432,3 +432,84 @@ def test_stochatreat_supports_big_integer_ids():
 
     assert set(treatment_status["id"]) == set(data["id"])
     assert set(treatment_status["treat"]) == {0, 1}
+
+
+def test_invalid_stratum_cols():
+    """Test error when stratum_cols contains a column not in the DataFrame"""
+    df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
+    with pytest.raises(KeyError):
+        stochatreat(
+            data=df,
+            stratum_cols=["not_a_column"],
+            treats=2,
+            idx_col="id",
+            probs=[0.5, 0.5],
+        )
+
+
+def test_output_column_order():
+    """Test that output DataFrame columns are in expected order"""
+    df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
+    result = stochatreat(
+        data=df,
+        stratum_cols=["stratum"],
+        treats=2,
+        idx_col="id",
+        probs=[0.5, 0.5],
+    )
+    expected_order = ["id", "stratum_id", "treat"]
+    assert list(result.columns) == expected_order
+
+
+def test_duplicate_idx_col():
+    """Test error when idx_col contains duplicates"""
+    df = pd.DataFrame({"id": [1, 1, 2], "stratum": ["a", "a", "b"]})
+    with pytest.raises(ValueError):
+        stochatreat(
+            data=df,
+            stratum_cols=["stratum"],
+            treats=2,
+            idx_col="id",
+            probs=[0.5, 0.5],
+        )
+
+
+def test_invalid_misfit_strategy():
+    """Test error for invalid misfit_strategy"""
+    df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
+    with pytest.raises(ValueError):
+        stochatreat(
+            data=df,
+            stratum_cols=["stratum"],
+            treats=2,
+            idx_col="id",
+            probs=[0.5, 0.5],
+            misfit_strategy="not_a_strategy",
+        )
+
+
+def test_idx_col_uuid_and_float():
+    """Test with UUIDs and floats as idx_col"""
+    import uuid
+    df = pd.DataFrame({
+        "id": [uuid.uuid4(), uuid.uuid4()],
+        "stratum": ["a", "b"]
+    })
+    result = stochatreat(
+        data=df,
+        stratum_cols=["stratum"],
+        treats=2,
+        idx_col="id",
+        probs=[0.5, 0.5],
+    )
+    assert set(result["id"]) == set(df["id"])
+
+    df_float = pd.DataFrame({"id": [1.1, 2.2], "stratum": ["a", "b"]})
+    result_float = stochatreat(
+        data=df_float,
+        stratum_cols=["stratum"],
+        treats=2,
+        idx_col="id",
+        probs=[0.5, 0.5],
+    )
+    assert set(result_float["id"]) == set(df_float["id"])
