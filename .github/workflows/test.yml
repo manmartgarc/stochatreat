@@ -33,18 +33,24 @@ jobs:
       - name: Run tests with pytest
         run: |
           hatch run +py=${{ matrix.python-version }} all:test-cov \
-          --cov-report=xml:coverage-${{ matrix.python-version }}.xml \
-          -o junit_family=legacy \
-          --junitxml=junit${{ matrix.python-version }}.xml
-      - name: Upload coverage reports to Codecov
+          --cov-report=xml:coverage-${{ matrix.python-version }}.xml
+      - name: Coveralls upload
         if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
+        uses: coverallsapp/github-action@v2
         with:
-          files: ./coverage-${{ matrix.python-version }}.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Upload test analytics
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./coverage-*.xml
+          fail-on-error: true
+          parallel: true
+          flag-name: python-${{ matrix.python-version }}
+
+  finalize-coveralls:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize Coveralls
+        uses: coverallsapp/github-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: junit${{ matrix.python-version }}.xml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
+          allow-empty: true
