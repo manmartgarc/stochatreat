@@ -95,7 +95,7 @@ def stochatreat(
     # =========================================================================
     # do checks
     # =========================================================================
-    data = data.copy()
+    # data = data.copy()
 
     # create treatment array and probability array
     treatment_ids = list(range(treats))
