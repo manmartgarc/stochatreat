@@ -15,6 +15,7 @@
   - Please open a suggestion issue first.
   - Provide a convincing reason to add this feature and have it greenlighted before working on it.
   - Add tests to cover the functionality.
+- Subscribe to the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) specification for commit messages. Based on whether you add a new feature, fix a bug, or make a breaking change, please prefix your commit messages with `feat:`, `fix:`, or `BREAKING CHANGE:` respectively. This will not only help in maintaining a clear and consistent project history but also allow automated tools to generate changelogs and manage versioning effectively, including releases.
 
 - Please follow [Style Guide for Python Code](https://www.python.org/dev/peps/pep-0008/).
 
@@ -24,11 +25,14 @@ You can install the development environment, i.e. all the dependencies required 
 
 1. [Install](https://hatch.pypa.io/1.9/install/#installation) `hatch`.
 2. Clone the repository:
+
     ```bash
     git clone https://github.com/manmartgarc/stochatreat
     cd stochatreat
     ```
+
 3. Confirm `hatch` picked up the project:
+
     ```bash
     hatch status
     ```

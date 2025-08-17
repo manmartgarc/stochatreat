@@ -16,6 +16,8 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref_name }}
       cancel-in-progress: false
+    outputs:
+      released: ${{ steps.psr-release.outputs.released }}
 
     permissions:
       contents: write
@@ -76,6 +78,18 @@ jobs:
 
           printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
 
+      - name: Action | Semantic Version Release
+        uses: python-semantic-release/python-semantic-release@v10
+        id: psr-release
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+          build: false
+
+      - name: Set output released
+        run: echo "released=${{ steps.psr-release.outputs.released }}" >> $GITHUB_ENV
+
       - name: Action | Install Hatch
         uses: pypa/hatch@install
 
@@ -83,21 +97,12 @@ jobs:
         run: |
           hatch build
 
-      - name: Action | Semantic Version Release
-        uses: python-semantic-release/python-semantic-release@v10
-        id: release
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          git_committer_name: "github-actions"
-          git_committer_email: "actions@users.noreply.github.com"
-          build: false
-
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v10
-        if: steps.release.outputs.released == 'true'
+        if: steps.psr-release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release.outputs.tag }}
+          tag: ${{ steps.psr-release.outputs.tag }}
 
       - name: Upload | Distribution Artifacts
         uses: actions/upload-artifact@v4
@@ -109,12 +114,9 @@ jobs:
   deploy:
     # 1. Separate out the deploy step from the publish step to run each step at
     #    the least amount of token privilege
-    # 2. Also, deployments can fail, and its better to have a separate job if you need to retry
-    #    and it won't require reversing the release.
-    runs-on: ubuntu-latest
     needs: release
-    if: ${{ needs.release.outputs.released == 'true' }}
-
+    runs-on: ubuntu-latest
+    if: needs.release.outputs.released == 'true'
     permissions:
       contents: read
       id-token: write
@@ -126,15 +128,6 @@ jobs:
           name: distribution-artifacts
           path: dist
 
-      # ------------------------------------------------------------------- #
-      # Python Semantic Release is not responsible for publishing your      #
-      # python artifacts to PyPI. Use the official PyPA publish action      #
-      # instead. The following steps are an example but is not guaranteed   #
-      # to work as the action is not maintained by the                      #
-      # python-semantic-release team.                                       #
-      # ------------------------------------------------------------------- #
-
-      # see https://docs.pypi.org/trusted-publishers/
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
