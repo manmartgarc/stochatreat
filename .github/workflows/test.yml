@@ -33,7 +33,7 @@ jobs:
       - name: Run tests with pytest
         run: |
           hatch run +py=${{ matrix.python-version }} all:test-cov \
-          --cov-report=xml:coverage-${{ matrix.python-version }} \
+          --cov-report=xml:coverage-${{ matrix.python-version }}.xml \
           -o junit_family=legacy \
           --junitxml=junit${{ matrix.python-version }}.xml
       - name: Upload coverage reports to Codecov
