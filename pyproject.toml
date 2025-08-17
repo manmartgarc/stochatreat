@@ -78,5 +78,5 @@ ignore_missing_imports = true
 
 [tool.semantic_release]
 commit_parser = "conventional"
-version_variable = "src/stochatreat/__about__.py:__version__"
+version_variables = ["src/stochatreat/__about__.py:__version__"]
 allow_zero_version = true
