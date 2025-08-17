@@ -45,9 +45,6 @@ dependencies = ["pytest", "pytest-cov", "pytest-xdist", "coverage[toml]>=6.5"]
 test-cov = "pytest --cov=src/stochatreat tests/ -n auto {args}"
 test = "test-cov --no-cov"
 
-[tool.hatch.envs.all]
-installer = "uv"
-
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10", "3.11", "3.12", "3.13"]
 
