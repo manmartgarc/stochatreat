@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.1.1 (2025-08-17)
+
+### Bug Fixes
+
+- Version variable
+  ([`b4936dd`](https://github.com/manmartgarc/stochatreat/commit/b4936dd312a26752a3d3ce264e8be1b5c30d3eac))
+
+### Build System
+
+- Deprecate 3.9, add 3.13
+  ([`9439879`](https://github.com/manmartgarc/stochatreat/commit/9439879a8763548fbaee6fe320bffdc63eaa773e))
+
+### Continuous Integration
+
+- Fix step id
+  ([`fabab71`](https://github.com/manmartgarc/stochatreat/commit/fabab71bf4290aa284beba22f249abdb7cb7ac5f))
+
+
 ## v0.1.0 (2025-08-16)
 
 ### Bug Fixes
