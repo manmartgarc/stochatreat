@@ -2,6 +2,32 @@
 
 <!-- version list -->
 
+## v0.1.3 (2025-08-17)
+
+### Build System
+
+- Pytest command
+  ([`234bcf3`](https://github.com/manmartgarc/stochatreat/commit/234bcf3f996dbce294d6c6422a651f1d50a8b856))
+
+- See if setting up python works
+  ([`64d1ba0`](https://github.com/manmartgarc/stochatreat/commit/64d1ba08b9d37554d5bcad0773f650a576b99bda))
+
+### Continuous Integration
+
+- Fix test command
+  ([`a78a40c`](https://github.com/manmartgarc/stochatreat/commit/a78a40c9d0ebea7fd4798c2d1e6e5c1a91e4a147))
+
+### Documentation
+
+- Conventional commit contributions
+  ([`3da97d6`](https://github.com/manmartgarc/stochatreat/commit/3da97d691894f1b6d35ecf45c7ea707b0096eaa1))
+
+### Testing
+
+- Use new codecov action
+  ([`b26dabe`](https://github.com/manmartgarc/stochatreat/commit/b26dabe609ea76fcfc396ae1deeb4a0c62140957))
+
+
 ## v0.1.2 (2025-08-17)
 
 ### Bug Fixes
