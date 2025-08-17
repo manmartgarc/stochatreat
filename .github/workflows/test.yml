@@ -42,3 +42,4 @@ jobs:
           path-to-lcov: ./coverage-*.xml
           fail-on-error: true
           parallel: true
+          flag-name: python-${{ matrix.python-version }}
