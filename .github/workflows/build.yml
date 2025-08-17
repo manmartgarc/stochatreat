@@ -18,10 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
       - uses: pypa/hatch@install
       - name: Check lint and format
         run: |
@@ -31,7 +27,7 @@ jobs:
           hatch run types:check
       - name: Run tests with pytest
         run: |
-          hatch run +py=${{ matrix.python-version }} all:test-cov -- junitxml=junit-${{ matrix.python-version }}.xml -o junit_family=legacy
+          hatch run +py=${{ matrix.python-version }} all:test-cov -o junit_family=legacy --junitxml=junit-${{ matrix.python-version }}.xml
       - name: Upload coverage reports to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
