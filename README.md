@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-|Build|[![typing-and-tests](https://github.com/manmartgarc/stochatreat/actions/workflows/test.yml/badge.svg)](https://github.com/manmartgarc/stochatreat/actions/workflows/test.yml) [![Coverage Status](https://coveralls.io/repos/github/manmartgarc/stochatreat/badge.svg?branch=test-codecov)](https://coveralls.io/github/manmartgarc/stochatreat?branch=test-codecov)
+|Build|[![typing-and-tests](https://github.com/manmartgarc/stochatreat/actions/workflows/test.yml/badge.svg)](https://github.com/manmartgarc/stochatreat/actions/workflows/test.yml) [![Coverage Status](https://coveralls.io/repos/github/manmartgarc/stochatreat/badge.svg?branch=main)](https://coveralls.io/github/manmartgarc/stochatreat?branch=main)
 |PyPI| [![pypi](https://img.shields.io/pypi/v/stochatreat?logo=pypi)](https://pypi.org/project/stochatreat/) [![PyPI Downloads](https://static.pepy.tech/badge/stochatreat/month)](https://pepy.tech/projects/stochatreat)
 |conda-forge| [![Conda](https://img.shields.io/conda/v/conda-forge/stochatreat?logo=conda-forge)](https://anaconda.org/conda-forge/stochatreat) ![conda-downloads](https://img.shields.io/conda/dn/conda-forge/stochatreat?logo=conda-forge)
 |Meta| [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch) [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![types - Mypy](https://img.shields.io/badge/types-Mypy-blue.svg)](https://github.com/python/mypy) [![License - MIT](https://img.shields.io/badge/license-MIT-9400d3.svg)](https://spdx.org/licenses/)
