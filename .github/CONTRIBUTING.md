@@ -61,17 +61,10 @@ hatch fmt
 
 ## Release
 
-- Run `hatch` to update the version number file and create a new tag:
+Based on your conventional commit tags, the CI process will determine whether or not a new release is required. If it does, it will handle this for you by:
 
-  ```bash
-  hatch version [major|minor|patch]
-  ```
-
-- Commit the changes and push them to your fork.
-- Tag the new version:
-    ```bash
-    git tag -a v0.0.0 -m "v0.0.0"
-    git push origin v0.0.0
-    ```
-- Submit a PR.
-- Once the PR is merged, run `hatch publish` to create a new release in PyPI.
+- Creating a new tag
+- Creating a new release
+- Building the release artifacts
+- Attaching these artifacts to the release
+- Doing the same for PyPi
