@@ -193,7 +193,7 @@ def stochatreat(
     # produce the assignment mask that we will use to achieve perfect
     # proportions
     treat_mask = np.repeat(
-        treatment_ids, (lcm_prob_denominators * probs_np).astype(int)
+        treatment_ids, (lcm_prob_denominators * probs_np).round().astype(int)
     )
 
     # =========================================================================
