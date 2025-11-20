@@ -520,3 +520,26 @@ def test_idx_col_uuid_and_float():
         probs=[0.5, 0.5],
     )
     assert set(result_float["id"]) == set(df_float["id"])
+
+
+@pytest.mark.parametrize("seed", [0])
+def test_stochatreat_crossplatform_flakiness(seed):
+    """This test would fail on a mac but pass on ubuntu if a stable sort was not used."""
+    rng = np.random.default_rng(seed)
+    n = 100
+    df = pd.DataFrame({
+        "id": range(n),
+        "stratum": rng.choice(["a", "b"], n),
+    })
+    assignments = stochatreat(
+        data=df,
+        stratum_cols=["stratum"],
+        treats=2,
+        idx_col="id",
+        probs=[0.2, 0.8],
+        random_state=42,
+    )
+    assert assignments["treat"].value_counts(ascending=True).tolist() == [21, 79], (
+        "assignments:\n"
+        f"{assignments.groupby(['stratum_id', 'treat']).count()}"
+    )
