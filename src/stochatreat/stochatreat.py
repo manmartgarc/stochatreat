@@ -244,7 +244,10 @@ def stochatreat(
     data.loc[:, "fake"] = 0
     fake_rep.loc[:, "fake"] = 1
 
-    data = pd.concat([data, fake_rep], sort=False).sort_values(by="stratum_id")
+    sort_kind = "stable" if random_state is not None else None
+    data = pd.concat([data, fake_rep], sort=False).sort_values(
+        by="stratum_id", kind=sort_kind
+    )
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
