@@ -26,7 +26,7 @@ def stochatreat(
     stratum_cols: list[str],
     treats: int,
     probs: list[float] | None = None,
-    random_state: int = 42,
+    random_state: int | None = 42,
     idx_col: str | None = None,
     size: int | None = None,
     misfit_strategy: MisfitStrategy = "stratum",
