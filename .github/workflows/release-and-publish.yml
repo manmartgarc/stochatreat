@@ -31,7 +31,7 @@ jobs:
       # possible that the branch was updated while the workflow was running. This
       # prevents accidentally releasing un-evaluated changes.
       - name: Setup | Checkout Repository on Release Branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.release.outputs.released == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Action | Install Hatch
         uses: pypa/hatch@install
 
