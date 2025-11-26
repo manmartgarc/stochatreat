@@ -16,9 +16,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    if: (!inputs.debug || inputs.debug == 'false')
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
@@ -47,6 +49,7 @@ jobs:
   finalize-coveralls:
     needs: test
     runs-on: ubuntu-latest
+    if: (!inputs.debug || inputs.debug == 'false')
     steps:
       - name: Finalize Coveralls
         uses: coverallsapp/github-action@v2

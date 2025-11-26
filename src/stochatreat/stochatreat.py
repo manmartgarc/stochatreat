@@ -26,7 +26,7 @@ def stochatreat(
     stratum_cols: list[str],
     treats: int,
     probs: list[float] | None = None,
-    random_state: int = 42,
+    random_state: int | None = 42,
     idx_col: str | None = None,
     size: int | None = None,
     misfit_strategy: MisfitStrategy = "stratum",
@@ -244,7 +244,9 @@ def stochatreat(
     data.loc[:, "fake"] = 0
     fake_rep.loc[:, "fake"] = 1
 
-    data = pd.concat([data, fake_rep], sort=False).sort_values(by="stratum_id")
+    data = pd.concat([data, fake_rep], sort=False).sort_values(
+        by="stratum_id", kind="stable"
+    )
 
     # generate random permutations without loop by generating large number of
     # random values and sorting row (meaning one permutation) wise
