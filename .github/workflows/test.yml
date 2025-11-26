@@ -13,17 +13,14 @@ on:
       branch:
         required: true
         type: string
-  workflow_dispatch:
-    inputs:
-      debug:
-        default: "false"
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     if: (!inputs.debug || inputs.debug == 'false')
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
@@ -60,17 +57,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
           allow-empty: true
-
-  debug:
-    runs-on: ${{ matrix.os }}
-    if: (inputs.debug && inputs.debug == 'true')
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, macos-15]
-    steps:
-      - uses: actions/checkout@v5
-      - uses: pypa/hatch@install
-      - name: Test flakiness on different platforms
-        run: hatch run pytest -k test_stochatreat_crossplatform_flakiness
-        continue-on-error: true
-
