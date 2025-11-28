@@ -2,6 +2,101 @@
 
 <!-- version list -->
 
+## v0.1.4 (2025-11-28)
+
+### Bug Fixes
+
+- Random_state type hint should allow None to be passed to RandomState
+  ([`bf32d4b`](https://github.com/manmartgarc/stochatreat/commit/bf32d4b4cb7b1cdabdf7889649ac347c30a83747))
+
+- Utilize a stable sort when a random_state is supplied
+  ([`e4da32c`](https://github.com/manmartgarc/stochatreat/commit/e4da32c03c718babc65170c938b7d7138108ef0d))
+
+### Build System
+
+- Fix suffix
+  ([`299263e`](https://github.com/manmartgarc/stochatreat/commit/299263e445fb367171f004a4f5b535392b3b7021))
+
+- **deps**: Bump actions/checkout from 4 to 5
+  ([`28fa09d`](https://github.com/manmartgarc/stochatreat/commit/28fa09d13cac9dbde385c3fda8c53e1c1d0d9d9e))
+
+- **deps**: Bump actions/checkout from 5 to 6
+  ([`a34cddd`](https://github.com/manmartgarc/stochatreat/commit/a34cddd1ac14b3e9196d1bdb21a6390a00e082b9))
+
+- **deps**: Bump actions/download-artifact from 4 to 5
+  ([`acc5d42`](https://github.com/manmartgarc/stochatreat/commit/acc5d422441b3664f2165a93b6770fda0cf5d495))
+
+- **deps**: Bump actions/download-artifact from 5 to 6
+  ([`8e6aac3`](https://github.com/manmartgarc/stochatreat/commit/8e6aac3cf728af1101d4f8b4c9135da8836c5d84))
+
+- **deps**: Bump actions/upload-artifact from 4 to 5
+  ([`ccbd6f1`](https://github.com/manmartgarc/stochatreat/commit/ccbd6f1e23a67a29dc0204c41b7d6350d64f46d4))
+
+### Code Style
+
+- Fix formatting
+  ([`a0af797`](https://github.com/manmartgarc/stochatreat/commit/a0af7971259f7d5e1b8792e3025cb0b4a28d2290))
+
+### Continuous Integration
+
+- Add join step for coveralls
+  ([`3c637d3`](https://github.com/manmartgarc/stochatreat/commit/3c637d361df7744be98c873b39571564e66d3cc7))
+
+- Codecov setup
+  ([`c77973a`](https://github.com/manmartgarc/stochatreat/commit/c77973ae5ee5d9c2b8af976fbc8f47ecf5955332))
+
+- Fix codecov suffix
+  ([`c232c4e`](https://github.com/manmartgarc/stochatreat/commit/c232c4ec18527f03844ffd663f4c875bb470bec8))
+
+- Fix review feedback
+  ([`a646266`](https://github.com/manmartgarc/stochatreat/commit/a646266e6ea030ed4369b0c80bc964036e98a69d))
+
+- Omit tests/ from coverage
+  ([`fa04cc1`](https://github.com/manmartgarc/stochatreat/commit/fa04cc10dcf370c72819d708c37ccde1ed34c4a4))
+
+- Reorder release and publish
+  ([`d1e44ea`](https://github.com/manmartgarc/stochatreat/commit/d1e44ea809259904300cca0638e2c13be314986e))
+
+- Run all tests on ubuntu and macos
+  ([`873244f`](https://github.com/manmartgarc/stochatreat/commit/873244ff0cb739a0b87d34d2f45173a0c1d385b1))
+
+- Set flag name for coveralls
+  ([`3751566`](https://github.com/manmartgarc/stochatreat/commit/3751566978299e4f91fe46f963747dccecc63cad))
+
+- Try coveralls
+  ([`115e10a`](https://github.com/manmartgarc/stochatreat/commit/115e10afa45d50c19b9af30fe95514cb3ed6d034))
+
+- Uncomment condition
+  ([`2df2a24`](https://github.com/manmartgarc/stochatreat/commit/2df2a24e7ae2464a92d9195fbb23fd4c30230ab6))
+
+### Documentation
+
+- Action badge in readme
+  ([`a30de9a`](https://github.com/manmartgarc/stochatreat/commit/a30de9a45bf097cf16c2b9ff36f015f42f5ea633))
+
+- Fix badge branch
+  ([`5eff6a5`](https://github.com/manmartgarc/stochatreat/commit/5eff6a50ab32075656bca5352e3ecb1bc1595ca2))
+
+- Pypi download badge
+  ([`4bf496c`](https://github.com/manmartgarc/stochatreat/commit/4bf496c5d04fbe0ca936721808f685f0bfcffe0b))
+
+- Switch to coveralls
+  ([`ac2bd76`](https://github.com/manmartgarc/stochatreat/commit/ac2bd76173ddecc6fcbc5683eb5cfa72c0925ec4))
+
+- Updates codecov embed API token
+  ([`fb9155b`](https://github.com/manmartgarc/stochatreat/commit/fb9155b23ee7d43f7c03895367558385a21b85a7))
+
+### Refactoring
+
+- Always use a stable sort when sorting by stratum_id
+  ([`e7e6933`](https://github.com/manmartgarc/stochatreat/commit/e7e6933b0a446ad90e1b7566c8453eef39368172))
+
+### Testing
+
+- Commit a flaky test
+  ([`e24bc50`](https://github.com/manmartgarc/stochatreat/commit/e24bc505c191dd6e390d4973d1587798f9fd907e))
+
+
 ## v0.1.3 (2025-08-17)
 
 ### Build System
