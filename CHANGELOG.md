@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.1.5 (2025-11-28)
+
+### Bug Fixes
+
+- Fetch tags in build job checkout to enable publish-action
+  ([`ee68ae7`](https://github.com/manmartgarc/stochatreat/commit/ee68ae7d2d37a487bd2a908848d9521baf7b7fb5))
+
+
 ## v0.1.4 (2025-11-28)
 
 ### Bug Fixes
