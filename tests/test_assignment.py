@@ -1,3 +1,4 @@
+import uuid
 import warnings
 
 import numpy as np
@@ -497,7 +498,6 @@ def test_invalid_misfit_strategy():
 
 def test_idx_col_uuid_and_float():
     """Test with UUIDs and floats as idx_col"""
-    import uuid
 
     df = pd.DataFrame(
         {"id": [uuid.uuid4(), uuid.uuid4()], "stratum": ["a", "b"]}
@@ -544,7 +544,4 @@ def test_stochatreat_crossplatform_flakiness():
     assert assignments["treat"].value_counts(ascending=True).tolist() == [
         21,
         79,
-    ], (
-        "assignments:\n"
-        f"{assignments.groupby(['stratum_id', 'treat']).count()}"
-    )
+    ], f"assignments:\n{assignments.groupby(['stratum_id', 'treat']).count()}"

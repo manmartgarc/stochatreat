@@ -62,7 +62,7 @@ def test_input_empty_data(correct_params):
     """
     empty_data = pd.DataFrame()
     with pytest.raises(
-        ValueError, match="Make sure that your dataframe is not empty."
+        ValueError, match=r"Make sure that your dataframe is not empty."
     ):
         stochatreat(
             data=empty_data,
@@ -79,7 +79,7 @@ def test_input_idx_col_str(correct_params):
     string or None
     """
     idx_col_not_str = 0
-    with pytest.raises(TypeError, match="idx_col has to be a string."):
+    with pytest.raises(TypeError, match=r"idx_col has to be a string."):
         stochatreat(
             data=correct_params["data"],
             stratum_cols=["stratum"],
@@ -95,7 +95,7 @@ def test_input_invalid_size(correct_params):
     """
     size_bigger_than_sampling_universe_size = 101
     with pytest.raises(
-        ValueError, match="Size argument is larger than the sample universe."
+        ValueError, match=r"Size argument is larger than the sample universe."
     ):
         stochatreat(
             data=correct_params["data"],
@@ -116,7 +116,7 @@ def test_input_idx_col_unique(correct_params):
         data={"id": 1, "stratum": np.arange(100)}
     )
     with pytest.raises(
-        ValueError, match="The values in idx_col are not unique."
+        ValueError, match=r"The values in idx_col are not unique."
     ):
         stochatreat(
             data=data_with_idx_col_with_duplicates,
