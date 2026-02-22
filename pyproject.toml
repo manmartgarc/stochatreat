@@ -72,8 +72,16 @@ show_missing = true
 line-length = 79
 
 [tool.ruff.lint]
-ignore = ["TRY003"]
+select = ["I", "D", "DOC"]
+ignore = ["TRY003", "D203", "D213"]
+preview = true
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "DOC"]
+
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.semantic_release]
 commit_parser = "conventional"

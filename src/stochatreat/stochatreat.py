@@ -31,7 +31,8 @@ def stochatreat(
     size: int | None = None,
     misfit_strategy: MisfitStrategy = "stratum",
 ) -> pd.DataFrame:
-    """
+    """Assign treatments to units in a stratified manner.
+
     Takes a dataframe and an arbitrary number of treatments over an
     arbitrary number of strata.
 
@@ -39,37 +40,39 @@ def stochatreat(
     assigning misfits (left overs from strata not divisible by the number
     of treatments).
 
-    Parameters
-    ----------
-    data            :   The data that contains unique ids and the
-                        stratification columns.
-    stratum_cols    :   The columns in 'data' that you want to stratify over.
-    treats          :   The number of treatments you would like to
-                        implement, including control.
-    probs           :   The assignment probabilities for each of the
-                        treatments.
-    random_state    :   The seed for the rng instance.
-    idx_col         :   The column name that indicates the ids for your data.
-    size            :   The size of the sample if you would like to sample
-                        from your data.
-    misfit_strategy :   The strategy used to assign misfits. Can be one of
-                        'stratum' or 'global'.
-                        If 'stratum', will assign misfits randomly and
-                        independently within each stratum using probs.
-                        If 'global', will group all misfits into one stratum
-                        and do a full assignment procedure in this new stratum
-                        with local random assignments of the misfits in this
-                        stratum
+    Args:
+        data: The data that contains unique ids and the stratification columns.
+        stratum_cols: The columns in 'data' that you want to stratify over.
+        treats: The number of treatments you would like to implement,
+            including control.
+        probs: The assignment probabilities for each of the treatments.
+        random_state: The seed for the rng instance.
+        idx_col: The column name that indicates the ids for your data.
+        size: The size of the sample if you would like to sample from your
+            data.
+        misfit_strategy: The strategy used to assign misfits. Can be one of
+            'stratum' or 'global'. If 'stratum', will assign misfits randomly
+            and independently within each stratum using probs. If 'global',
+            will group all misfits into one stratum and do a full assignment
+            procedure in this new stratum with local random assignments of the
+            misfits in this stratum.
 
-    Returns
-    -------
-    pandas.DataFrame with idx_col, treat (treatment assignments) and
-    stratum_id (the id of the stratum within which the assignment procedure
-    was carried out) columns
+    Returns:
+        pandas.DataFrame with idx_col, treat (treatment assignments) and
+        stratum_id (the id of the stratum within which the assignment
+        procedure was carried out) columns.
 
-    Usage
-    -----
-    Single stratum:
+    Raises:
+        ValueError: If misfit_strategy is not 'stratum' or 'global', if
+            probabilities don't sum to 1, if the number of probabilities
+            doesn't match the number of treatments, if the dataframe is
+            empty, if the dataframe has fewer than 2 rows, if idx_col values
+            are not unique, or if size is larger than the sample universe.
+        TypeError: If idx_col is not a string or None.
+
+    Examples:
+        Single stratum:
+
         >>> treats = stochatreat(data=data,               # your dataframe
                                  stratum_cols='stratum1', # stratum variable
                                  treats=2,                # including control
@@ -77,7 +80,8 @@ def stochatreat(
                                  random_state=42)         # seed for rng
         >>> data = data.merge(treats, how="left", on="myid")
 
-    Multiple strata:
+        Multiple strata:
+
         >>> treats = stochatreat(data=data,
                                  stratum_cols=['stratum1', 'stratum2'],
                                  treats=2,
@@ -85,6 +89,7 @@ def stochatreat(
                                  idx_col='myid',
                                  random_state=42)
         >>> data = data.merge(treats, how="left", on="myid")
+
     """
     # we also do a runtime check for the naughty folks that don't use typing
     if misfit_strategy not in get_args(MisfitStrategy):

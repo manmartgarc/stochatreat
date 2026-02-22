@@ -81,11 +81,6 @@ probs_no_misfits = [
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_no_probs(n_treats, stratum_cols, df):
-    """
-    Tests that overall treatment assignment proportions across all strata are
-    as intended with equal treatment assignment probabilities -- relies on the
-    Law of Large Numbers, not deterministic
-    """
     treats = stochatreat(
         data=df,
         stratum_cols=stratum_cols,
@@ -104,11 +99,6 @@ def test_stochatreat_no_probs(n_treats, stratum_cols, df):
 @pytest.mark.parametrize("probs", standard_probs)
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_probs(probs, stratum_cols, df):
-    """
-    Tests that overall treatment assignment proportions across all strata are
-    as intended with unequal treatment assignment probabilities -- relies on
-    the Law of Large Numbers, not deterministic
-    """
     treats = stochatreat(
         data=df,
         stratum_cols=stratum_cols,
@@ -126,10 +116,6 @@ def test_stochatreat_probs(probs, stratum_cols, df):
 
 @pytest.mark.parametrize("probs", probs_no_misfits)
 def test_stochatreat_no_misfits(probs, df_no_misfits):
-    """
-    Tests that overall treatment assignment proportions across all strata are
-    as intended when strata are such that there are no misfits
-    """
     treats = stochatreat(
         data=df_no_misfits,
         stratum_cols=["stratum"],
@@ -147,12 +133,6 @@ def test_stochatreat_no_misfits(probs, df_no_misfits):
 
 @pytest.mark.parametrize("probs", standard_probs)
 def test_stochatreat_only_misfits(probs):
-    """
-    Tests that overall treatment assignment proportions across all strata are
-    as intended when strata are such that there are only misfits and the number
-    of units is sufficiently large -- relies on the Law of Large Numbers, not
-    deterministic
-    """
     n = 10_000
     df = pd.DataFrame(
         data={
@@ -181,7 +161,6 @@ def test_stochatreat_only_misfits(probs):
 
 
 def get_within_strata_counts(treats):
-    """Helper function to compute the treatment shares within strata"""
     treatment_counts = (
         treats.groupby(["stratum_id", "treat"])[["id"]]
         .count()
@@ -202,12 +181,6 @@ def get_within_strata_counts(treats):
 
 
 def compute_count_diff(treats, probs):
-    """
-    Helper function to compute the treatment counts within strata and line them
-    up with required counts, and returns the different treatment counts
-    aggregated at the stratum level as well as the dataframe with the different
-    counts used in some tests
-    """
     counts = get_within_strata_counts(treats)
 
     required_props = pd.DataFrame(
@@ -224,11 +197,6 @@ def compute_count_diff(treats, probs):
 @pytest.mark.parametrize("n_treats", [2, 3, 4, 5, 10])
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_within_strata_no_probs(n_treats, stratum_cols, df):
-    """
-    Tests that within strata treatment assignment counts are only as far from
-    the required counts as misfit assignment randomization allows with equal
-    treatment assignment probabilities but a differing number of treatments
-    """
     probs = n_treats * [1 / n_treats]
     lcm_prob_denominators = n_treats
     treats = stochatreat(
@@ -248,11 +216,6 @@ def test_stochatreat_within_strata_no_probs(n_treats, stratum_cols, df):
 @pytest.mark.parametrize("probs", standard_probs)
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_within_strata_probs(probs, stratum_cols, df):
-    """
-    Tests that within strata treatment assignment counts are only as far from
-    the required counts as misfit assignment randomization allows with two
-    treatments but unequal treatment assignment probabilities
-    """
     lcm_prob_denominators = get_lcm_prob_denominators(probs)
     treats = stochatreat(
         data=df,
@@ -271,10 +234,6 @@ def test_stochatreat_within_strata_probs(probs, stratum_cols, df):
 
 @pytest.mark.parametrize("probs", probs_no_misfits)
 def test_stochatreat_within_strata_no_misfits(probs, df_no_misfits):
-    """
-    Tests that within strata treatment assignment counts are exactly equal to
-    the required counts when strata are such that there are no misfits
-    """
     treats = stochatreat(
         data=df_no_misfits,
         stratum_cols=["stratum"],
@@ -312,7 +271,6 @@ def test_stochatreat_global_strategy(probs, stratum_cols, df):
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 def test_stochatreat_stratum_ids(df, misfit_strategy, stratum_cols):
-    """Tests that the function returns the right number of stratum ids"""
     treats = stochatreat(
         data=df,
         stratum_cols=stratum_cols,
@@ -339,10 +297,6 @@ def test_stochatreat_stratum_ids(df, misfit_strategy, stratum_cols):
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 def test_stochatreat_random_state(df, stratum_cols, misfit_strategy):
-    """
-    Tests that the results are the same on two consecutive calls with the same
-    random state
-    """
     random_state = 42
     treats = []
     for _ in range(2):
@@ -362,10 +316,6 @@ def test_stochatreat_random_state(df, stratum_cols, misfit_strategy):
 @pytest.mark.parametrize("stratum_cols", standard_stratum_cols)
 @pytest.mark.parametrize("misfit_strategy", ["global", "stratum"])
 def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
-    """
-    Tests that the mapping between idx_col and the assignments is the same on
-    two consecutive calls with the same random state and shuffled data points
-    """
     random_state = 42
     treats = []
     for _ in range(2):
@@ -391,10 +341,6 @@ def test_stochatreat_shuffle_data(df, stratum_cols, misfit_strategy):
 
 
 def test_stochatreat_categorical_strata_warning():
-    """
-    Verify no deprecation warning is raised when the stratum column is a
-    categorical variable
-    """
     data = pd.DataFrame(
         {
             "id": [1, 2],
@@ -415,7 +361,6 @@ def test_stochatreat_categorical_strata_warning():
 
 
 def test_stochatreat_supports_big_integer_ids():
-    """Verify that we can handle bigint ids"""
     # If we allow pandas to silently upcast, certain dtypes that convert to
     # float64 may lose precision, resulting in wrong or missing assignments:
     #   103241243500726324 is rounded to 103241243500726320
@@ -441,7 +386,6 @@ def test_stochatreat_supports_big_integer_ids():
 
 
 def test_invalid_stratum_cols():
-    """Test error when stratum_cols contains a column not in the DataFrame"""
     df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
     with pytest.raises(KeyError):
         stochatreat(
@@ -454,7 +398,6 @@ def test_invalid_stratum_cols():
 
 
 def test_output_column_order():
-    """Test that output DataFrame columns are in expected order"""
     df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
     result = stochatreat(
         data=df,
@@ -468,7 +411,6 @@ def test_output_column_order():
 
 
 def test_duplicate_idx_col():
-    """Test error when idx_col contains duplicates"""
     df = pd.DataFrame({"id": [1, 1, 2], "stratum": ["a", "a", "b"]})
     with pytest.raises(
         ValueError, match="The values in idx_col are not unique"
@@ -483,7 +425,6 @@ def test_duplicate_idx_col():
 
 
 def test_invalid_misfit_strategy():
-    """Test error for invalid misfit_strategy"""
     df = pd.DataFrame({"id": [1, 2], "stratum": ["a", "b"]})
     with pytest.raises(ValueError, match="misfit_strategy must be one of"):
         stochatreat(
@@ -497,8 +438,6 @@ def test_invalid_misfit_strategy():
 
 
 def test_idx_col_uuid_and_float():
-    """Test with UUIDs and floats as idx_col"""
-
     df = pd.DataFrame(
         {"id": [uuid.uuid4(), uuid.uuid4()], "stratum": ["a", "b"]}
     )
@@ -523,7 +462,6 @@ def test_idx_col_uuid_and_float():
 
 
 def test_stochatreat_crossplatform_flakiness():
-    """This test would fail on a mac but pass on ubuntu if a stable sort was not used."""
     seed = 0
     rng = np.random.default_rng(seed)
     n = 100
