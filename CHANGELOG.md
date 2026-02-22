@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v0.1.6 (2026-02-22)
+
+### Bug Fixes
+
+- Raise KeyError with message when stratum_cols or idx_col missing from data
+  ([`e8c861c`](https://github.com/manmartgarc/stochatreat/commit/e8c861cdb75831dda77b1138e400c95b92a7010d))
+
+### Build System
+
+- **deps**: Bump actions/download-artifact from 6 to 7
+  ([`3b1b2fa`](https://github.com/manmartgarc/stochatreat/commit/3b1b2fac91f8d3bc8c1e29cedbee877d7a7d67f9))
+
+- **deps**: Bump actions/upload-artifact from 5 to 6
+  ([`8652702`](https://github.com/manmartgarc/stochatreat/commit/86527029834a9426f36743b0340ec8d1d8fb25fa))
+
+### Chores
+
+- Convert docstrings to Google style and enable ruff D/DOC rules
+  ([`f8321c6`](https://github.com/manmartgarc/stochatreat/commit/f8321c6897b1ae2765b8e83e7d3d72c9c9f04ab8))
+
+- Migrate from mypy to ty for type checking, move CONTRIBUTING.md, add AGENTS.md
+  ([`e6bffb9`](https://github.com/manmartgarc/stochatreat/commit/e6bffb9f368d3f55424d9e777f5874ab52ae7129))
+
+- Use extend-select for ruff and ignore S101 in tests
+  ([`7a6479b`](https://github.com/manmartgarc/stochatreat/commit/7a6479ba24056db31c4ea9c1e44d86bbf91f4ad6))
+
+### Documentation
+
+- Add Zensical GitHub Pages site
+  ([`47b83bb`](https://github.com/manmartgarc/stochatreat/commit/47b83bbd599df176adced475847478af2f6feb41))
+
+- Update site config, README, and workflow
+  ([`21d917c`](https://github.com/manmartgarc/stochatreat/commit/21d917c8728e1be4dfa11c28764b3d1b2ec2ab28))
+
+
 ## v0.1.5 (2025-11-28)
 
 ### Bug Fixes
