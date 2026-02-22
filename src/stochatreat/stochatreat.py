@@ -63,6 +63,8 @@ def stochatreat(
         procedure was carried out) columns.
 
     Raises:
+        KeyError: If any column in stratum_cols or idx_col is not present
+            in data.
         ValueError: If misfit_strategy is not 'stratum' or 'global', if
             probabilities don't sum to 1, if the number of probabilities
             doesn't match the number of treatments, if the dataframe is
@@ -137,6 +139,17 @@ def stochatreat(
     elif not isinstance(idx_col, str):
         error_msg = "idx_col has to be a string."
         raise TypeError(error_msg)
+
+    # validate that all required columns exist in data
+    stratum_cols_list = (
+        [stratum_cols] if isinstance(stratum_cols, str) else list(stratum_cols)
+    )
+    missing = [
+        c for c in [*stratum_cols_list, idx_col] if c not in data.columns
+    ]
+    if missing:
+        msg = f"Columns not found in data: {missing}"
+        raise KeyError(msg)
 
     # retrieve type to check and re-assign in the end
     idx_col_type = data[idx_col].dtype
