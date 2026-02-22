@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from stochatreat.stochatreat import stochatreat
-from stochatreat.utils import get_lcm_prob_denominators
+from stochatreat.treatment import get_lcm_prob_denominators
 
 ###############################################################################
 # fixtures
