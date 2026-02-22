@@ -42,7 +42,7 @@ You can install the development environment, i.e. all the dependencies required 
 To run tests in the default environment:
 
 ```bash
-hatch run default:test
+hatch test
 ```
 
 To run tests in all environments:

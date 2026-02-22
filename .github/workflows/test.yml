@@ -29,7 +29,7 @@ jobs:
       - name: Check lint and format
         run: |
           hatch fmt --check
-      - name: Type-checking with Mypy
+      - name: Type-checking with ty
         run: |
           hatch run types:check
       - name: Run tests with pytest
