@@ -3,6 +3,11 @@ name: docs
 on:
   push:
     branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "CHANGELOG.md"
   workflow_dispatch:
 
 permissions:
@@ -25,7 +30,7 @@ jobs:
       - name: Setup | Install Hatch
         uses: pypa/hatch@install
 
-      - name: Build | MkDocs
+      - name: Build | Zensical
         run: hatch run docs:build
 
       - name: Upload | GitHub Pages artifact
