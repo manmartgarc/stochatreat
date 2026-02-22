@@ -84,12 +84,12 @@ show_missing = true
 line-length = 79
 
 [tool.ruff.lint]
-select = ["I", "D", "DOC"]
+extend-select = ["I", "D", "DOC"]
 ignore = ["TRY003", "D203", "D213"]
 preview = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D", "DOC"]
+"tests/**" = ["D", "DOC", "S101"]
 
 
 [tool.ruff.format]
