@@ -49,9 +49,9 @@ test = "test-cov --no-cov"
 python = ["3.10", "3.11", "3.12", "3.13"]
 
 [tool.hatch.envs.types]
-dependencies = ["mypy>=1.0.0"]
+dependencies = ["ty", "pytest"]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive src/stochatreat tests/"
+check = "ty check src/stochatreat tests/"
 
 [tool.coverage.run]
 branch = true
@@ -63,7 +63,7 @@ omit = [
 exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
-  "if TYPE_CHEKCING",
+  "if TYPE_CHECKING",
   "__version__ = ",
 ]
 show_missing = true
@@ -74,11 +74,6 @@ line-length = 79
 [tool.ruff.lint]
 ignore = ["TRY003"]
 
-[tool.mypy]
-check_untyped_defs = true
-show_error_codes = true
-pretty = true
-ignore_missing_imports = true
 
 [tool.semantic_release]
 commit_parser = "conventional"

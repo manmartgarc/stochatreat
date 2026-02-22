@@ -5,13 +5,13 @@
 |Build|[![typing-and-tests](https://github.com/manmartgarc/stochatreat/actions/workflows/test.yml/badge.svg)](https://github.com/manmartgarc/stochatreat/actions/workflows/test.yml) [![Coverage Status](https://coveralls.io/repos/github/manmartgarc/stochatreat/badge.svg?branch=main)](https://coveralls.io/github/manmartgarc/stochatreat?branch=main)
 |PyPI| [![pypi](https://img.shields.io/pypi/v/stochatreat?logo=pypi)](https://pypi.org/project/stochatreat/) [![PyPI Downloads](https://static.pepy.tech/badge/stochatreat/month)](https://pepy.tech/projects/stochatreat)
 |conda-forge| [![Conda](https://img.shields.io/conda/v/conda-forge/stochatreat?logo=conda-forge)](https://anaconda.org/conda-forge/stochatreat) ![conda-downloads](https://img.shields.io/conda/dn/conda-forge/stochatreat?logo=conda-forge)
-|Meta| [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch) [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![types - Mypy](https://img.shields.io/badge/types-Mypy-blue.svg)](https://github.com/python/mypy) [![License - MIT](https://img.shields.io/badge/license-MIT-9400d3.svg)](https://spdx.org/licenses/)
+|Meta| [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch) [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![ty](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json)](https://github.com/astral-sh/ty) [![License - MIT](https://img.shields.io/badge/license-MIT-9400d3.svg)](https://spdx.org/licenses/)
 
 ---
 
 ## Introduction
 
-This is a Python tool to employ stratified randomization or sampling with uneven numbers in some strata using pandas. Mainly thought with randomized controlled trials (RCTs) in mind, it also works for any other scenario in where you would like to randomly allocate treatment within *blocks* or *strata*. The tool also supports having multiple treatments with different probability of assignment within each block or stratum.
+This is a Python tool to employ stratified randomization or sampling with uneven numbers in some strata using pandas. Mainly designed with randomized controlled trials (RCTs) in mind, it also works for any other scenario where you would like to randomly allocate treatment within *blocks* or *strata*. The tool also supports having multiple treatments with different probability of assignment within each block or stratum.
 
 ## Installation
 
@@ -121,7 +121,7 @@ nhood dummy
 
 ## Contributing
 
-If you'd like to contribute to the package, make sure you read the [contributing guide](https://github.com/manmartgarc/stochatreat/blob/main/.github/CONTRIBUTING.md).
+If you'd like to contribute to the package, make sure you read the [contributing guide](https://github.com/manmartgarc/stochatreat/blob/main/CONTRIBUTING.md).
 
 ## References
 
