@@ -1,0 +1,66 @@
+site_name: stochatreat
+site_url: https://manmartgarc.github.io/stochatreat/
+site_description: Stratified random treatment assignment using pandas
+site_author: Manuel Martinez
+repo_url: https://github.com/manmartgarc/stochatreat
+repo_name: manmartgarc/stochatreat
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: assets/stochatreat.png
+  favicon: assets/stochatreat.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_signature_annotations: true
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - API Reference: api.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - tables

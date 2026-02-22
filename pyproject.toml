@@ -30,8 +30,10 @@ classifiers = [
 ]
 dependencies = ["pandas>=2.2"]
 
+
+
 [project.urls]
-Documentation = "https://github.com/manmartgarc/stochatreat/blob/main/README.md"
+Documentation = "https://manmartgarc.github.io/stochatreat/"
 Issues = "https://github.com/manmartgarc/stochatreat/issues"
 Source = "https://github.com/manmartgarc/stochatreat/"
 
@@ -44,6 +46,16 @@ dependencies = ["pytest", "pytest-cov", "pytest-xdist", "coverage[toml]>=6.5"]
 [tool.hatch.envs.default.scripts]
 test-cov = "pytest --cov -n auto {args}"
 test = "test-cov --no-cov"
+
+[tool.hatch.envs.docs]
+installer = "uv"
+dependencies = [
+  "zensical",
+  "mkdocstrings[python]>=0.25",
+]
+[tool.hatch.envs.docs.scripts]
+build = "zensical build --clean --strict"
+serve = "zensical serve"
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10", "3.11", "3.12", "3.13"]
@@ -72,8 +84,16 @@ show_missing = true
 line-length = 79
 
 [tool.ruff.lint]
-ignore = ["TRY003"]
+extend-select = ["I", "D", "DOC"]
+ignore = ["TRY003", "D203", "D213"]
+preview = true
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "DOC", "S101"]
+
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.semantic_release]
 commit_parser = "conventional"
