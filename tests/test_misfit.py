@@ -1,9 +1,12 @@
+import numpy as np
 import pandas as pd
 import pytest
 
 from stochatreat.misfit import (
     GlobalMisfitHandler,
+    NoneMisfitHandler,
     StratumMisfitHandler,
+    _extract_misfits,
     make_misfit_handler,
 )
 
@@ -43,10 +46,45 @@ class TestGlobalMisfitHandler:
         assert set(good["stratum_id"]) == {0}
 
 
+class TestNoneMisfitHandler:
+    def test_marks_misfits_with_na(self, odd_stratum_df):
+        result = NoneMisfitHandler().handle(
+            odd_stratum_df, lcm=2, random_state=0
+        )
+        assert result["stratum_id"].isna().sum() == 1
+
+    def test_converts_stratum_id_to_nullable_int(self):
+        df = pd.DataFrame({"id": [1, 2, 3], "stratum_id": [0, 0, 1]})
+        result = NoneMisfitHandler().handle(df, lcm=2, random_state=0)
+        assert result["stratum_id"].dtype == "Int64"
+
+
 class TestMakeMisfitHandler:
     @pytest.mark.parametrize(
         ("strategy", "expected"),
-        [("stratum", StratumMisfitHandler), ("global", GlobalMisfitHandler)],
+        [
+            ("stratum", StratumMisfitHandler),
+            ("global", GlobalMisfitHandler),
+            ("none", NoneMisfitHandler),
+        ],
     )
     def test_returns_correct_type(self, strategy, expected):
         assert isinstance(make_misfit_handler(strategy), expected)
+
+
+def test_extract_misfits_independent_randomness():
+    n_strata = 100
+    df = pd.DataFrame(
+        {
+            "id": range(n_strata * 10),
+            "stratum_id": np.repeat(range(n_strata), 10),
+        }
+    )
+
+    _, misfits = _extract_misfits(df, lcm=3, random_state=42)
+
+    relative_positions = misfits["id"] % 10
+
+    assert relative_positions.nunique() > 1, (
+        "Misfits are sampled at the same relative position in every stratum!"
+    )

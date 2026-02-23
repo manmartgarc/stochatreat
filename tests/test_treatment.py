@@ -73,7 +73,7 @@ class TestTreatmentAssigner:
     def test_treat_dtype(self, spec_equal_probs, prepared_df):
         df, idx_col = prepared_df
         result = TreatmentAssigner(spec_equal_probs).assign(df, idx_col)
-        assert result["treat"].dtype == np.int64
+        assert result["treat"].dtype == "Int64"
 
     def test_no_null_treats(self, spec_equal_probs, prepared_df):
         df, idx_col = prepared_df
