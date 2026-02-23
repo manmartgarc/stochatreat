@@ -1,13 +1,8 @@
 name: docs
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "docs/**"
-      - "mkdocs.yml"
-      - "src/**"
-      - "CHANGELOG.md"
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:

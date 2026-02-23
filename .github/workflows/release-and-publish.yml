@@ -146,12 +146,4 @@ jobs:
           print-hash: true
           verbose: true
 
-  # we do this so that codecov reports are associated with the release if there's one
-  test:
-    needs: release
-    if: needs.release.outputs.released == 'true'
-    uses: ./.github/workflows/test.yml
-    with:
-      branch: ${{ github.ref_name }}
-
 
