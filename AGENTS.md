@@ -42,7 +42,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). T
 | `feat!:` / `fix!:` / `BREAKING CHANGE:` footer | Major version bump (e.g. `0.1.5` → `1.0.0`) |
 | `docs:`, `chore:`, `refactor:`, `test:`, `ci:` | No release triggered |
 
-**Do not manually edit `__version__` in `src/stochatreat/__about__.py`** — it is updated automatically by the release workflow.
+**Do not manually edit `__version__` in `src/stochatreat/__about__.py`** — it is generated automatically by `hatch-vcs` from Git tags during the build process.
 
 ## Style
 
@@ -63,11 +63,10 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). T
 Releases are fully automated via [Python Semantic Release (PSR)](https://python-semantic-release.readthedocs.io/en/stable/) and triggered by merging a PR into `main`. The pipeline runs in three stages:
 
 1. **Release** (`.github/workflows/release-and-publish.yml`): PSR inspects the commit messages on `main` since the last release tag. If any `feat:` or `fix:` commits (or breaking changes) are found, it:
-   - Bumps the version in `src/stochatreat/__about__.py`
-   - Updates `CHANGELOG.md`
-   - Creates a Git tag and GitHub Release
+   - Creates a Git tag
+   - Creates a GitHub Release with changelog notes
 
-2. **Build**: If a release was created, `hatch build` produces the `sdist` and wheel, which are attached to the GitHub Release.
+2. **Build**: If a release was created, `hatch build` produces the `sdist` and wheel. The version is derived from the Git tag via `hatch-vcs`. Artifacts are attached to the GitHub Release.
 
 3. **Publish**: The distribution artifacts are uploaded to [PyPI](https://pypi.org/project/stochatreat/) via trusted publishing. The [conda-forge feedstock](https://anaconda.org/conda-forge/stochatreat) picks up new PyPI releases automatically.
 
