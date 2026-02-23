@@ -9,15 +9,20 @@ on:
   pull_request:
     branches: [main]
   workflow_call:
-    inputs:
-      branch:
-        required: true
-        type: string
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pypa/hatch@install
+      - name: Check lint and format
+        run: hatch fmt --check
+      - name: Type-checking with ty
+        run: hatch run types:check
+
   test:
     runs-on: ${{ matrix.os }}
-    if: (!inputs.debug || inputs.debug == 'false')
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -26,12 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pypa/hatch@install
-      - name: Check lint and format
-        run: |
-          hatch fmt --check
-      - name: Type-checking with ty
-        run: |
-          hatch run types:check
       - name: Run tests with pytest
         run: |
           hatch run +py=${{ matrix.python-version }} all:test-cov \
@@ -49,7 +48,6 @@ jobs:
   finalize-coveralls:
     needs: test
     runs-on: ubuntu-latest
-    if: (!inputs.debug || inputs.debug == 'false')
     steps:
       - name: Finalize Coveralls
         uses: coverallsapp/github-action@v2
