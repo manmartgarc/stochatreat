@@ -1,3 +1,3 @@
 # Changelog
 
---8<-- "CHANGELOG.md"
+Release notes are maintained in [GitHub Releases](https://github.com/manmartgarc/stochatreat/releases).

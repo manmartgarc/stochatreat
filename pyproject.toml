@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -38,7 +38,10 @@ Issues = "https://github.com/manmartgarc/stochatreat/issues"
 Source = "https://github.com/manmartgarc/stochatreat/"
 
 [tool.hatch.version]
-path = "src/stochatreat/__about__.py"
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/stochatreat/__about__.py"
 
 [tool.hatch.envs.default]
 installer = "uv"
@@ -96,5 +99,4 @@ docstring-code-format = true
 
 [tool.semantic_release]
 commit_parser = "conventional"
-version_variables = ["src/stochatreat/__about__.py:__version__"]
 allow_zero_version = true
