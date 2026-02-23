@@ -19,7 +19,7 @@
 `stochatreat` assigns treatments within each stratum independently. For a given set of treatment probabilities, it:
 
 1. Divides each stratum into the largest possible block that can be split in exact proportion
-2. Assigns treatments to the remainder (*misfits*) using one of two strategies
+2. Assigns treatments to the remainder (*misfits*) using one of three strategies
 
 ### Misfit strategies
 
@@ -27,6 +27,7 @@
 |---|---|
 | `"stratum"` *(default)* | Misfits in each stratum are assigned randomly and independently using the given probabilities |
 | `"global"` | All misfits across strata are pooled into one group and assigned together |
+| `"none"` | Misfits are left unassigned (`treat = NA`) and marked with `stratum_id = NA` for manual handling |
 
 ## Examples
 
@@ -117,6 +118,33 @@ treats = stochatreat(
     size=500,
     random_state=42,
 )
+```
+
+### Manual misfit handling
+
+The `"none"` strategy identifies misfits but leaves their treatment unassigned. This is useful when you want to handle these cases manually:
+
+```python
+# Identify misfits without assigning treatments to them
+treats = stochatreat(
+    data=df,
+    stratum_cols="nhood",
+    treats=2,
+    idx_col="id",
+    random_state=42,
+    misfit_strategy="none",
+)
+
+# Misfits are marked with stratum_id = NA and treat = NA
+misfits = treats[treats["stratum_id"].isna()]
+print(f"Found {len(misfits)} misfits")
+
+# Option 1: Assign all misfits to control
+treats.loc[treats["stratum_id"].isna(), "treat"] = 0
+
+# Option 2: Exclude misfits from the study
+df = df.merge(treats, how="left", on="id")
+df_assigned = df[df["treat"].notna()]
 ```
 
 ## References

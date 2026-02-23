@@ -49,16 +49,18 @@ def stochatreat(
         size: The size of the sample if you would like to sample from your
             data.
         misfit_strategy: The strategy used to assign misfits. Can be one of
-            'stratum' or 'global'. If 'stratum', will assign misfits randomly
-            and independently within each stratum using probs. If 'global',
-            will group all misfits into one stratum and do a full assignment
-            procedure in this new stratum with local random assignments of the
-            misfits in this stratum.
+            'stratum', 'global', or 'none'. If 'stratum', will assign misfits
+            randomly and independently within each stratum using probs. If
+            'global', will group all misfits into one stratum and do a full
+            assignment procedure in this new stratum with local random
+            assignments of the misfits in this stratum. If 'none', will leave
+            misfits unassigned (treat = NA) and mark them with stratum_id = NA.
 
     Returns:
         pandas.DataFrame with idx_col, treat (treatment assignments) and
         stratum_id (the id of the stratum within which the assignment
-        procedure was carried out) columns.
+        procedure was carried out) columns. Both treat and stratum_id use
+        pandas nullable integer types (Int64) to support NA values.
 
     Examples:
         Single stratum:

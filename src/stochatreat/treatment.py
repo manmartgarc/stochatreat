@@ -118,11 +118,21 @@ class TreatmentAssigner:
 
         idx_col_type = data[idx_col].dtype
 
+        # Separate misfits (stratum_id = NA) to exclude from assignment
+        is_misfit = data["stratum_id"].isna()
+        misfits = data[is_misfit].copy()
+        data = data[~is_misfit]
+
+        stratum_id_dtype = data["stratum_id"].dtype
+
         fake = pd.DataFrame({"fake": data.groupby("stratum_id").size()})
         fake = fake.reset_index()
         fake.loc[:, "fake"] = (lcm - fake["fake"] % lcm) % lcm
         fake_rep = pd.DataFrame(
             fake.values.repeat(fake["fake"], axis=0), columns=fake.columns
+        )
+        fake_rep["stratum_id"] = fake_rep["stratum_id"].astype(
+            stratum_id_dtype
         )
         # Protect idx_col from silent float upcast when NaNs are introduced
         # by the fake rows; the original dtype is restored after removal.
@@ -142,6 +152,11 @@ class TreatmentAssigner:
         data = data[data["fake"] == 0].drop(columns=["fake"])
 
         data[idx_col] = data[idx_col].astype(idx_col_type)
-        data["treat"] = data["treat"].astype(np.int64)
+        data["treat"] = data["treat"].astype("Int64")
+
+        # Add misfits back with NaN treatment
+        if not misfits.empty:
+            misfits["treat"] = pd.array([pd.NA] * len(misfits), dtype="Int64")
+            data = pd.concat([data, misfits])
 
         return data

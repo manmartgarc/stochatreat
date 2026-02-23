@@ -483,3 +483,25 @@ def test_stochatreat_crossplatform_flakiness():
         21,
         79,
     ], f"assignments:\n{assignments.groupby(['stratum_id', 'treat']).count()}"
+
+
+def test_stochatreat_none_strategy_leaves_misfits_unassigned():
+    df = pd.DataFrame(
+        {"id": range(10), "stratum": [1, 1, 1, 2, 2, 2, 2, 3, 3, 3]}
+    )
+    result = stochatreat(
+        df,
+        "stratum",
+        treats=2,
+        idx_col="id",
+        misfit_strategy="none",
+        random_state=42,
+    )
+    misfits = result[result["stratum_id"].isna()]
+    expected_misfits = (
+        2  # stratum 1: 3%2=1, stratum 2: 4%2=0, stratum 3: 3%2=1
+    )
+    assert len(misfits) == expected_misfits
+    assert misfits["treat"].isna().all()
+    assigned = result[result["stratum_id"].notna()]
+    assert assigned["treat"].notna().all()

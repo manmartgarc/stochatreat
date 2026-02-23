@@ -55,6 +55,8 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). T
 - Add tests for all new features and bug fixes
 - Run `hatch test` to verify
 - Test files live in `tests/` and must not contain docstrings
+- Test function names should be descriptive enough to explain intent without docstrings
+- Use assertion messages to document failure modes: `assert condition, "Explanation of what went wrong"`
 
 ## CI/CD Releases
 

@@ -144,7 +144,7 @@ def test_output_treat_col(treatments_dict):
 def test_output_treat_col_dtype(treatments_dict):
     treatments_df = treatments_dict["treatments"]
     assert_msg = "Treatment column is missing"
-    assert treatments_df["treat"].dtype == np.int64, assert_msg
+    assert treatments_df["treat"].dtype == "Int64", assert_msg
 
 
 def test_output_stratum_id_col(treatments_dict):

@@ -18,7 +18,7 @@ Got an RCT with unequal strata sizes? `stochatreat` handles the messiness for yo
 !!! tip "Why stochatreat?"
     - :material-check-circle: Works with **any number of strata**
     - :material-check-circle: Supports **unequal treatment probabilities**
-    - :material-check-circle: Two misfit strategies: `"stratum"` or `"global"`
+    - :material-check-circle: Three misfit strategies: `"stratum"`, `"global"`, or `"none"`
     - :material-check-circle: Reproducible via `random_state`
     - :material-check-circle: Returns a clean pandas DataFrame — just merge and go
 

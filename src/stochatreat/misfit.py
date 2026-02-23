@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Literal, Protocol, get_args
 
+import numpy as np
 import pandas as pd
 
-MisfitStrategy = Literal["stratum", "global"]
+MisfitStrategy = Literal["stratum", "global", "none"]
 
 
 class MisfitHandler(Protocol):
@@ -64,6 +65,35 @@ class StratumMisfitHandler(MisfitHandler):
         return data
 
 
+def _extract_misfits(
+    data: pd.DataFrame, lcm: int, random_state: int | None
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Extract misfits from each stratum.
+
+    Args:
+        data: DataFrame with stratum_id column.
+        lcm: LCM of probability denominators.
+        random_state: Seed for reproducible sampling.
+
+    Returns:
+        Tuple of (non-misfit data, misfit data).
+
+    """
+    rng = np.random.RandomState(random_state)
+    data = data.copy()
+    data["_random"] = rng.rand(len(data))
+    data = data.sort_values(["stratum_id", "_random"])
+
+    group_ranks = data.groupby("stratum_id").cumcount()
+    group_sizes = data.groupby("stratum_id")["stratum_id"].transform("count")
+    is_misfit = group_ranks < (group_sizes % lcm)
+
+    misfit_data = data[is_misfit].drop(columns=["_random"])
+    good_form_data = data[~is_misfit].drop(columns=["_random"])
+
+    return good_form_data, misfit_data
+
+
 class GlobalMisfitHandler(MisfitHandler):
     """Misfit strategy that pools all misfits into a single global stratum.
 
@@ -91,26 +121,49 @@ class GlobalMisfitHandler(MisfitHandler):
             DataFrame where misfits have been moved to stratum -1.
 
         """
-        misfit_data = data.groupby("stratum_id").apply(
-            lambda x: x.sample(
-                n=(x.shape[0] % lcm),
-                replace=False,
-                random_state=random_state,
-            ),
-            include_groups=False,
-        )
-        misfit_data["stratum_id"] = misfit_data.index.get_level_values(0)
-        misfit_data = misfit_data.droplevel(level="stratum_id")
-        good_form_data = data.drop(index=misfit_data.index)
+        good_form_data, misfit_data = _extract_misfits(data, lcm, random_state)
         misfit_data.loc[:, "stratum_id"] = -1
         return pd.concat([good_form_data, misfit_data])
+
+
+class NoneMisfitHandler(MisfitHandler):
+    """Misfit strategy that leaves misfits unassigned.
+
+    Identifies misfits and marks them with stratum_id = NA, leaving
+    their treatment assignment as NaN. This allows users to identify
+    and handle misfits manually.
+    """
+
+    @staticmethod
+    def handle(
+        data: pd.DataFrame,
+        lcm: int,
+        random_state: int | None,
+    ) -> pd.DataFrame:
+        """Mark misfits with stratum_id = NA for later exclusion.
+
+        Args:
+            data: DataFrame with stratum_id column.
+            lcm: LCM of probability denominators used to determine
+                how many units are misfits per stratum.
+            random_state: Seed for reproducible misfit sampling.
+
+        Returns:
+            DataFrame where misfits have stratum_id = NA.
+
+        """
+        good_form_data, misfit_data = _extract_misfits(data, lcm, random_state)
+        data = pd.concat([good_form_data, misfit_data])
+        data["stratum_id"] = data["stratum_id"].astype("Int64")
+        data.loc[misfit_data.index, "stratum_id"] = pd.NA
+        return data
 
 
 def make_misfit_handler(strategy: MisfitStrategy) -> MisfitHandler:
     """Return the appropriate misfit handler for the given strategy.
 
     Args:
-        strategy: One of ``'stratum'`` or ``'global'``.
+        strategy: One of ``'stratum'``, ``'global'``, or ``'none'``.
 
     Returns:
         A misfit handler instance.
@@ -119,10 +172,13 @@ def make_misfit_handler(strategy: MisfitStrategy) -> MisfitHandler:
         ValueError: If strategy is not a valid MisfitStrategy.
 
     """
-    valid = get_args(MisfitStrategy)
-    if strategy not in valid:
+    handlers: dict[MisfitStrategy, MisfitHandler] = {
+        "stratum": StratumMisfitHandler(),
+        "global": GlobalMisfitHandler(),
+        "none": NoneMisfitHandler(),
+    }
+    if strategy not in handlers:
+        valid = get_args(MisfitStrategy)
         msg = f"misfit_strategy must be one of {valid}."
         raise ValueError(msg)
-    if strategy == "global":
-        return GlobalMisfitHandler()
-    return StratumMisfitHandler()
+    return handlers[strategy]
