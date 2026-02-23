@@ -150,5 +150,5 @@ df_assigned = df[df["treat"].notna()]
 ## References
 
 - `stochatreat` is inspired by [Alvaro Carril's](https://acarril.github.io/) Stata package [`randtreat`](https://acarril.github.io/posts/randtreat), published in [The Stata Journal](https://www.stata-journal.com/article.html?article=st0490).
-- [David McKenzie's blog post](http://blogs.worldbank.org/impactevaluations/tools-of-the-trade-doing-stratified-randomization-with-uneven-numbers-in-some-strata) on stratified randomization for the World Bank.
+- [Tools of the trade: Doing Stratified Randomization with Uneven Numbers in some Strata](http://blogs.worldbank.org/impactevaluations/tools-of-the-trade-doing-stratified-randomization-with-uneven-numbers-in-some-strata) on stratified randomization for the World Bank.
 - [*In Pursuit of Balance: Randomization in Practice in Development Field Experiments.* Bruhn, McKenzie, 2009](https://www.aeaweb.org/articles?id=10.1257/app.1.4.200)
