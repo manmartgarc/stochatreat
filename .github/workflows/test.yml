@@ -55,3 +55,17 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
           allow-empty: true
+
+  # Wrapper job for branch protection - aggregates status of lint and test jobs
+  # without re-running any actual work. This provides a single required check
+  # that works with matrix jobs.
+  typing-and-tests:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]] || [[ "${{ needs.test.result }}" != "success" ]]; then
+            exit 1
+          fi
