@@ -41,7 +41,7 @@ Source = "https://github.com/manmartgarc/stochatreat/"
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/stochatreat/__about__.py"
+version-file = "src/stochatreat/_version.py"
 
 [tool.hatch.envs.default]
 installer = "uv"

@@ -2,6 +2,8 @@
 *.ps1
 coverage.json
 
+# hatch-vcs generated version file
+src/stochatreat/_version.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
