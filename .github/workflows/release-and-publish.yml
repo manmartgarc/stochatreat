@@ -83,6 +83,7 @@ jobs:
       - name: Build | Build Distribution Artifacts
         if: steps.psr-release.outputs.released == 'true'
         run: |
+          git fetch --tags
           hatch build
 
       - name: Publish | Upload to GitHub Release Assets
