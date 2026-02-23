@@ -82,8 +82,10 @@ jobs:
 
       - name: Build | Build Distribution Artifacts
         if: steps.psr-release.outputs.released == 'true'
+        env:
+          # This bypasses the VCS check and forces the clean version
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.psr-release.outputs.version }}
         run: |
-          git fetch --tags
           hatch build
 
       - name: Publish | Upload to GitHub Release Assets
