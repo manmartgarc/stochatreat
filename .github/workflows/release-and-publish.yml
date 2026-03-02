@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload | Distribution Artifacts
         if: steps.psr-release.outputs.released == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: distribution-artifacts
           path: dist
