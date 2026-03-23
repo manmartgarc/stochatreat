@@ -74,6 +74,18 @@ class TestDataPreparator:
         prep, _ = DataPreparator(df, ["stratum"], "id", size, 42).prepare()
         assert len(prep) == size
 
+    def test_reserved_stratum_id_in_stratum_cols_raises(self):
+        df = pd.DataFrame({"id": [1, 2, 3, 4], "stratum_id": [10, 10, 20, 20]})
+        with pytest.raises(ValueError, match="reserved"):
+            DataPreparator(df, ["stratum_id"], "id", None, 42).prepare()
+
+    def test_reserved_stratum_id_as_idx_col_raises(self):
+        df = pd.DataFrame(
+            {"stratum_id": [100, 200, 300, 400], "stratum": [1, 1, 2, 2]}
+        )
+        with pytest.raises(ValueError, match="reserved"):
+            DataPreparator(df, ["stratum"], "stratum_id", None, 42).prepare()
+
     def test_none_idx_col_synthesised(self):
         df = pd.DataFrame({"stratum": ["a", "b", "c"]})
         prep, idx_col = DataPreparator(
