@@ -27,8 +27,9 @@ class DataPreparator:
 
     Raises:
         ValueError: If the DataFrame is empty, has fewer than 2 rows,
-            if idx_col values are not unique, or if size exceeds the
-            number of rows.
+            if idx_col values are not unique, if size exceeds the
+            number of rows, or if 'stratum_id' is used as idx_col or
+            in stratum_cols (reserved internal column name).
         TypeError: If idx_col is not a string or None.
         KeyError: If any column in stratum_cols or idx_col is missing
             from data.
@@ -92,6 +93,10 @@ class DataPreparator:
         if missing:
             msg = f"Columns not found in data: {missing}"
             raise KeyError(msg)
+
+        if "stratum_id" in [idx_col, *stratum_cols]:
+            msg = "'stratum_id' is a reserved column name."
+            raise ValueError(msg)
 
         if data[idx_col].duplicated(keep=False).sum() > 0:
             msg = "The values in idx_col are not unique."
