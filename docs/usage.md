@@ -1,19 +1,5 @@
 # Usage
 
-## Installation
-
-=== ":material-language-python: pip"
-
-    ```bash
-    pip install stochatreat
-    ```
-
-=== ":material-snake: conda"
-
-    ```bash
-    conda install -c conda-forge stochatreat
-    ```
-
 ## How it works
 
 `stochatreat` assigns treatments within each stratum independently. For a given set of treatment probabilities, it:
@@ -23,7 +9,7 @@
 
 ### Misfit strategies
 
-| Strategy | Behaviour |
+| Strategy | Behavior |
 |---|---|
 | `"stratum"` *(default)* | Misfits in each stratum are assigned randomly and independently using the given probabilities |
 | `"global"` | All misfits across strata are pooled into one group and assigned together |
@@ -122,7 +108,7 @@ treats = stochatreat(
 
 ### Manual misfit handling
 
-The `"none"` strategy identifies misfits but leaves their treatment unassigned. This is useful when you want to handle these cases manually:
+The `"none"` strategy identifies misfits but leaves their treatment unassigned:
 
 ```python
 # Identify misfits without assigning treatments to them

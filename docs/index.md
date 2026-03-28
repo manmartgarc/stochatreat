@@ -6,14 +6,14 @@ hide:
 # stochatreat :material-dice-multiple:
 
 <figure markdown="span">
-  ![stochatreat](assets/stochatreat.png){ width="250" }
+  ![stochatreat](assets/stochatreat-wide.png){ width="600" }
 </figure>
 
 **Stratified random treatment assignment using pandas.**
 
 ---
 
-Got an RCT with unequal strata sizes? `stochatreat` handles the messiness for you: it maximises balance within every stratum and deals with the leftover units (*misfits*) so your treatment groups stay as equal as possible.
+Got an RCT with unequal strata sizes? `stochatreat` handles the messiness for you: it maximizes balance within every stratum and handles the leftover units (*misfits*) so your treatment groups stay as equal as possible.
 
 !!! tip "Why stochatreat?"
     - :material-check-circle: Works with **any number of strata**
