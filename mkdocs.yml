@@ -8,8 +8,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
-  logo: assets/stochatreat.png
-  favicon: assets/stochatreat.png
+  logo: assets/stochatreat-logo.png
+  favicon: assets/stochatreat-logo.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default

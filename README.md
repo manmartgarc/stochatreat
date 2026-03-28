@@ -1,7 +1,7 @@
 # Stochatreat
 
 <p align="center">
-  <img src="docs/assets/stochatreat.png" width="200" alt="stochatreat logo">
+  <img src="docs/assets/stochatreat-wide.png" width="400" alt="stochatreat logo">
 </p>
 
 <p align="center">
